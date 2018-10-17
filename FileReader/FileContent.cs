@@ -318,6 +318,8 @@ namespace FileReader
 	[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
 	public class MainContainerClass
 	{
+		public override string ToString() { return ""; }
+
 		[Newtonsoft.Json.JsonProperty(PropertyName = "dock-background")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("DockBackground")]
@@ -340,6 +342,8 @@ namespace FileReader
 
 	public class SkinClass
 	{
+		public override string ToString() { return ""; }
+
 		[Newtonsoft.Json.JsonProperty(PropertyName = "auto-hide")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		[DisplayName("")]
@@ -368,6 +372,8 @@ namespace FileReader
 	[DisplayName("")]
 	public class TabGradientClass
 	{
+		public override string ToString() { return ""; }
+
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
 		[Browsable(false)]
 		public string DebuggerDisplay
@@ -392,6 +398,8 @@ namespace FileReader
 	[DisplayName("")]
 	public class StartEndGradientClass
 	{
+		public override string ToString() { return ""; }
+
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
 		[Browsable(false)]
 		public string DebuggerDisplay
@@ -412,6 +420,8 @@ namespace FileReader
 	[DisplayName("")]
 	public class BeginEndGradientClass
 	{
+		public override string ToString() { return ""; }
+
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
 		[Browsable(false)]
 		public string DebuggerDisplay
@@ -432,6 +442,8 @@ namespace FileReader
 	[DisplayName("")]
 	public class BeginMiddleEndGradientClass
 	{
+		public override string ToString() { return ""; }
+
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
 		[Browsable(false)]
 		public string DebuggerDisplay
@@ -455,6 +467,8 @@ namespace FileReader
 	[DisplayName("")]
 	public class DocumentGradientClass
 	{
+		public override string ToString() { return ""; }
+
 		[Newtonsoft.Json.JsonProperty(PropertyName = "dock-strip-gradient")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		[DisplayName("")]
@@ -474,6 +488,8 @@ namespace FileReader
 	[DisplayName("")]
 	public class ToolWindowClass
 	{
+		public override string ToString() { return ""; }
+
 		[Newtonsoft.Json.JsonProperty(PropertyName = "active-caption-gradient")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		[DisplayName("")]
@@ -503,6 +519,8 @@ namespace FileReader
 	[DisplayName("")]
 	public class DockPaneClass
 	{
+		public override string ToString() { return ""; }
+
 		[Newtonsoft.Json.JsonProperty(PropertyName = "document-gradient")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		public DocumentGradientClass DocumentGradient { get; set; }
@@ -512,10 +530,10 @@ namespace FileReader
 		public ToolWindowClass ToolWindow { get; set; }
 	}
 
-
-
 	public class MainMenuClass
 	{
+		public override string ToString() { return ""; }
+
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Background")]
 		public ColorClass Background { get; set; }
@@ -543,25 +561,505 @@ namespace FileReader
 
 		public class SelectedClass
 		{
+			public override string ToString() { return ""; }
+
 			[DisplayName("Gradient")]
 			[TypeConverter(typeof(ExpandableObjectConverter))]
 			public BeginEndGradientClass Gradient { get; set; }
 		}
 
 		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public PressedClass Pressed { get; set; }
+		public SingleGradientClass Pressed { get; set; }
 
-		public class PressedClass
+		public class SingleGradientClass
 		{
+			public override string ToString() { return ""; }
+
 			[DisplayName("Gradient")]
 			[TypeConverter(typeof(ExpandableObjectConverter))]
 			public BeginMiddleEndGradientClass Gradient { get; set; }
 		}
 
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ItemClass Item { get; set; }
+
+		public class ItemClass
+		{
+			public override string ToString() { return ""; }
+
+			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+			[DisplayName("Border")]
+			public ColorClass Border { get; set; }
+
+			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+			[DisplayName("Selected")]
+			public ColorClass Selected { get; set; }
+		}
+
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public CheckClass Check { get; set; }
+
+		public class CheckClass
+		{
+			public override string ToString() { return ""; }
+
+			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+			[DisplayName("Background")]
+			public ColorClass Background { get; set; }
+
+			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+			[DisplayName("Foreground")]
+			public ColorClass Foreground { get; set; }
+
+			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+			[DisplayName("Border")]
+			public ColorClass Border { get; set; }
+
+			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+			[DisplayName("Selected")]
+			public ColorClass Selected { get; set; }
+
+			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+			[DisplayName("Pressed")]
+			public ColorClass Pressed { get; set; }
+		}
+
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public SingleGradientClass Margin { get; set; }
 	}
+
+	public class ToolbarClass
+	{
+		public override string ToString() { return ""; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public ColorClass Background { get; set; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public ColorClass Border { get; set; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public ColorClass Separator { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "selected-gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BeginEndGradientClass SelectedGradient { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "overflow-gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BeginMiddleEndGradientClass OverflowGradient { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BeginMiddleEndGradientClass Gradient { get; set; }
+
+		public class GripClass
+		{
+			public override string ToString() { return ""; }
+
+			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+			public ColorClass Light { get; set; }
+
+			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+			public ColorClass Dark { get; set; }
+		}
+
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public GripClass Grip { get; set; }
+
+	}
+
+	public class BackgroundClass
+	{
+		public override string ToString() { return ""; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get; set; }
+	}
+
+	public class WelcomeClass
+	{
+		public override string ToString() { return ""; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get; set; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get; set; }
+
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Panel1 { get; set; }
+
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Panel2 { get; set; }
+
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass PnlTipOfTheDay { get; set; }
+
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass PnlRight { get; set; }
+	}
+
+	public class BackgroundForegroundClass
+	{
+		public override string ToString() { return ""; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get; set; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get; set; }
+	}
+
+	public class BackgroundLineClass
+	{
+		public override string ToString() { return ""; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get; set; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Line")]
+		public ColorClass Line { get; set; }
+	}
+
+	public class BackgroundForegroundLineClass
+	{
+		public override string ToString() { return ""; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get; set; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get; set; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Line")]
+		public ColorClass Line { get; set; }
+	}
+
+	public class BackgroundForegroundBorderClass
+	{
+		public override string ToString() { return ""; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get; set; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get; set; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Border")]
+		public ColorClass Border { get; set; }
+	}
+
+	public class ProjectPanelClass
+	{
+		public override string ToString() { return ""; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "project-tree")]
+		[DisplayName("ProjectTree")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundLineClass ProjectTree { get; set; }
+	}
+
+	public class ComboboxClass: BackgroundForegroundClass
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "drop-down")]
+		[DisplayName("DropDown")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass DropDown { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "drop-down-closed")]
+		[DisplayName("DropDown Closed")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass DropDownClosed { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "item-selected")]
+		[DisplayName("Item selected")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass ItemSelected { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "item-not-selected")]
+		[DisplayName("Item not selected")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass ItemNotSelected { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
+		[DisplayName("Border")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundClass Border { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "button-dropped-down")]
+		[DisplayName("Button dropped down")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass ButtonDroppedDown { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "button-not-dropped-down")]
+		[DisplayName("Button not dropped down")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass ButtonNotDroppedDown { get; set; }
+	}
+
+	public class PropertiesPanelClass
+	{
+		public override string ToString() { return ""; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "combobox")]
+		[DisplayName("ComboBox")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ComboboxClass Combobox { get; set; }
+	}
+
+	public class GridClass
+	{
+		public override string ToString() { return ""; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get; set; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Line")]
+		public ColorClass Line { get; set; }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Category")]
+		public ColorClass Category { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "view")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass View { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "help")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Help { get; set; }
+	}
+
+	public class OutputPanelClass : BackgroundForegroundClass
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "owner-draw")]
+		public bool OwnerDraw { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "grid-lines")]
+		public bool GridLines { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "last-column-width")]
+		[DisplayName("Last column width")]
+		public int LastColumnWidth { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "draw-item")]
+		[DisplayName("Draw item")]
+		public bool DrawItem { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "draw-sub-item")]
+		[DisplayName("Draw sub item")]
+		public bool DrawSubItem { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "column-header")]
+		[DisplayName("Column header")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundBorderClass ColumnHeader { get; set; }
+		
+	}
+
+	public class PropertyGridClass : BackgroundLineClass
+	{
+		[Newtonsoft.Json.JsonProperty(PropertyName = "category-fore")]
+		[DisplayName("Category fore")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public ColorClass CategoryFore { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "view")]
+		[DisplayName("View")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public BackgroundForegroundClass View { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "help")]
+		[DisplayName("Help")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public BackgroundForegroundClass Help { get; set; }
+	}
+
+	public class GeneralSettingsClass: BackgroundForegroundClass
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "property-grid")]
+		[DisplayName("Property grid")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public PropertyGridClass PropertyGrid { get; set; }
+
+	}
+
+	public class ColorNumberBoxClass : BackgroundForegroundClass
+	{
+		[Newtonsoft.Json.JsonProperty(PropertyName = "border-style")]
+		[DisplayName("Border style")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public int BorderStyle { get; set; }
+	}
+
+	public class BorderClass
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "size")]
+		[DisplayName("Size")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public int Size { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "color")]
+		[DisplayName("Color")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ColorClass Color { get; set; }
+	}
+
+	public class FlatClass
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "style")]
+		[DisplayName("Style")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public int Style { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
+		[DisplayName("Border")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BorderClass Border { get; set; }
+
+	}
+
+	public class BtnColorDialogClass : BackgroundForegroundClass
+	{
+		[Newtonsoft.Json.JsonProperty(PropertyName = "flat")]
+		[DisplayName("Flat")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public FlatClass Flat { get; set; }
+	}
+
+	public class ColorFinderClass : BackgroundForegroundClass
+	{
+		[Newtonsoft.Json.JsonProperty(PropertyName = "group-box")]
+		[DisplayName("Group box")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass GroupBox { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "color-number-box")]
+		[DisplayName("Color number box")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ColorNumberBoxClass ColorNumberBox { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-color-dialog")]
+		[DisplayName("Button color Dialog")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BtnColorDialogClass BtnColorDialog { get; set; }
+	}
+
+	public class PalettePageClass : BackgroundForegroundClass
+	{
+		[Newtonsoft.Json.JsonProperty(PropertyName = "group-box")]
+		[DisplayName("Group box")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass GroupBox { get; set; }
+	}
+
+	public class DrawItemClass
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[DisplayName("Background")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public SelectedColorClass Background { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[DisplayName("Foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public ColorClass Foreground { get; set; }
+
+		public class SelectedColorClass
+		{
+			public override string ToString() { return ""; }
+
+			[Newtonsoft.Json.JsonProperty(PropertyName = "selected")]
+			[DisplayName("Selected")]
+			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+			public ColorClass Selected { get; set; }
+
+			[Newtonsoft.Json.JsonProperty(PropertyName = "not-selected")]
+			[DisplayName("Not selected")]
+			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+			public ColorClass NotSelected { get; set; }
+		}
+	}
+
+	public class PaletteClass : BackgroundForegroundClass
+	{
+		[Newtonsoft.Json.JsonProperty(PropertyName = "color-finder")]
+		[DisplayName("Color finder")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ColorFinderClass ColorFinder { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "palette-page")]
+		[DisplayName("Palette")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public PalettePageClass PalettePage { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "draw-mode")]
+		[DisplayName("Draw mode")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public int DrawMode{ get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "draw-item")]
+		[DisplayName("Draw item")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public DrawItemClass DrawItem { get; set; }
+	}
+
+	public class SpriteSelectorClass : BackgroundForegroundClass
+	{
+		[Newtonsoft.Json.JsonProperty(PropertyName = "list")]
+		[DisplayName("List")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass List { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "tree")]
+		[DisplayName("Tree")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundLineClass Tree { get; set; }
+	}
+
 
 	public class FileContent
 	{
+		public override string ToString() { return ""; }
+
 		public string Name { get; set; }
 		public string Version { get; set; }
 
@@ -578,9 +1076,63 @@ namespace FileReader
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		public MainMenuClass MainMenu { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "tool-bar")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ToolbarClass Toolbar { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "status-strip")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundClass StatusStrip { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "welcome")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public WelcomeClass Welcome { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "project-panel")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ProjectPanelClass ProjectPanel {get;set;}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "properties-panel")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public PropertiesPanelClass PropertiesPanel { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "output-panel")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public OutputPanelClass OutputPanel { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "find-results-panel")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public OutputPanelClass FindResultsPanel { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "call-stack-panel")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public OutputPanelClass CallStackPanel { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "general-settings")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public GeneralSettingsClass GeneralSettings { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "palette")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public PaletteClass Palette { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "sprite-selector")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public SpriteSelectorClass SpriteSelector { get; set; }
 
 	}
-	
+
 	public class File
 	{
 		public FileContent Content { get; internal set; }
