@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿//using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.ComponentModel;
@@ -10,7 +10,7 @@ using System.Windows.Forms.Design;
 
 namespace FileReader
 {
-	public class NoTypeConverterJsonConverter<T> : JsonConverter
+	public class NoTypeConverterJsonConverter<T> : Newtonsoft.Json.JsonConverter
 	{
 		private static readonly IContractResolver resolver = new NoTypeConverterContractResolver();
 
@@ -33,16 +33,16 @@ namespace FileReader
 			return typeof(T).IsAssignableFrom(objectType);
 		}
 
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, Newtonsoft.Json.JsonSerializer serializer)
 		{
 			//return JsonSerializer.CreateDefault(new JsonSerializerSettings { ContractResolver = resolver }).Deserialize(reader, objectType);
-			return JsonSerializer.Create(new JsonSerializerSettings { ContractResolver = resolver }).Deserialize(reader, objectType);
+			return Newtonsoft.Json.JsonSerializer.Create(new Newtonsoft.Json.JsonSerializerSettings { ContractResolver = resolver }).Deserialize(reader, objectType);
 		}
 
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+		public override void WriteJson(Newtonsoft.Json.JsonWriter writer, object value, Newtonsoft.Json.JsonSerializer serializer)
 		{
 			//JsonSerializer.CreateDefault(new JsonSerializerSettings { ContractResolver = resolver }).Serialize(writer, value);
-			JsonSerializer.Create(new JsonSerializerSettings { ContractResolver = resolver }).Serialize(writer, value);
+			Newtonsoft.Json.JsonSerializer.Create(new Newtonsoft.Json.JsonSerializerSettings { ContractResolver = resolver }).Serialize(writer, value);
 		}
 	}
 
@@ -195,13 +195,13 @@ namespace FileReader
 	[System.Diagnostics.DebuggerDisplay("{DebuggerDisplay,nq}")]
 	[DisplayName("Color")]
 	[TypeConverter(typeof(MyColorConverter))]
-	[JsonConverter(typeof(NoTypeConverterJsonConverter<ColorClass>))]
+	[Newtonsoft.Json.JsonConverter(typeof(NoTypeConverterJsonConverter<ColorClass>))]
 	public class ColorClass
 	{
 		#region DebuggerDisplay
 
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
-		[Browsable(false)]
+		[Newtonsoft.Json.JsonIgnore, Browsable(false)]
 		public string DebuggerDisplay
 		{
 			get
@@ -283,6 +283,7 @@ namespace FileReader
 			if ( parts.Length == 3 )
 			{
 				//throw new Exception("Array must have a length of 3.");
+				A = 255;
 				R = Convert.ToByte(parts[0]);
 				G = Convert.ToByte(parts[1]);
 				B = Convert.ToByte(parts[2]);
@@ -391,7 +392,7 @@ namespace FileReader
 		}
 
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
-		[Browsable(false)]
+		[Newtonsoft.Json.JsonIgnore, Browsable(false)]
 		public string DebuggerDisplay
 		{
 			get { return $"Start={Start.DebuggerDisplay}, End={End.DebuggerDisplay}, Text={Text.DebuggerDisplay}"; }
@@ -420,7 +421,7 @@ namespace FileReader
 		}
 
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
-		[Browsable(false)]
+		[Newtonsoft.Json.JsonIgnore, Browsable(false)]
 		public string DebuggerDisplay
 		{
 			get { return $"Start={Start.DebuggerDisplay}, End={End.DebuggerDisplay}"; }
@@ -445,7 +446,7 @@ namespace FileReader
 		}
 
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
-		[Browsable(false)]
+		[Newtonsoft.Json.JsonIgnore, Browsable(false)]
 		public string DebuggerDisplay
 		{
 			get { return $"Begin={Begin.DebuggerDisplay}, End={End.DebuggerDisplay}"; }
@@ -470,7 +471,7 @@ namespace FileReader
 		}
 
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
-		[Browsable(false)]
+		[Newtonsoft.Json.JsonIgnore, Browsable(false)]
 		public string DebuggerDisplay
 		{
 			get { return $"Begin={Begin.DebuggerDisplay}, Middle={Middle.DebuggerDisplay}, End={End.DebuggerDisplay}"; }
@@ -1553,9 +1554,13 @@ namespace FileReader
 			return "";
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "name")]
 		public string Name { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "version")]
 		public string Version { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Background")]
 		public ColorClass Background { get; set; }
@@ -1697,6 +1702,8 @@ namespace FileReader
 
 	public class File
 	{
+		public static string tempcontent = string.Empty;
+
 		public FileContent Content { get; internal set; }
 
 		public bool Load(string fileName)
@@ -1715,19 +1722,29 @@ namespace FileReader
 					byte[] dataarray = new byte[stream.Length];
 					stream.Read(dataarray, 0, (int)stream.Length);
 
-					datastring = System.Text.Encoding.UTF8.GetString(dataarray);
+					datastring = System.Text.Encoding.ASCII.GetString(dataarray);
 				}
 
 				Content = Newtonsoft.Json.JsonConvert.DeserializeObject<FileContent>(datastring);
-
-				//Newtonsoft.Json.Linq.JObject jo = Newtonsoft.Json.Linq.JObject.FromObject(Content);
-				//jo["Version"].Parent.Remove();
-				//string json = jo.ToString();
+				tempcontent = datastring;
 
 				returnValue = true;
 			}
 
 			return returnValue;
+		}
+
+		public void Write(string filePath)
+		{
+			using ( System.IO.FileStream filestream = System.IO.File.Open(filePath, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.Read) )
+			{
+				string json = Newtonsoft.Json.JsonConvert.SerializeObject(this.Content, Newtonsoft.Json.Formatting.Indented);
+
+				using ( System.IO.StreamWriter sw = new System.IO.StreamWriter(filestream, System.Text.Encoding.ASCII) )
+				{
+					sw.Write(json);
+				}
+			}
 		}
 	}
 }
