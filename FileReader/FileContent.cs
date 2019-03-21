@@ -223,30 +223,34 @@ namespace FileReader
 		private byte _R;
 
 		[Browsable(false)]
+		[Newtonsoft.Json.JsonProperty(PropertyName = "r")]
 		public byte R { get { return _R; } set { _R = value; _Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
 
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
 		private byte _G;
 
 		[Browsable(false)]
+		[Newtonsoft.Json.JsonProperty(PropertyName = "g")]
 		public byte G { get { return _G; } set { _G = value; _Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
 
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
 		private byte _B;
 
 		[Browsable(false)]
+		[Newtonsoft.Json.JsonProperty(PropertyName = "b")]
 		public byte B { get { return _B; } set { _B = value; _Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
 
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
 		private byte _A;
 
 		[Browsable(false)]
+		[Newtonsoft.Json.JsonProperty(PropertyName = "a")]
 		public byte A { get { return _A; } set { _A = value; _Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
 
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
 		private System.Drawing.Color _Value;
 
-		[Browsable(false)]
+		[Newtonsoft.Json.JsonIgnore, Browsable(false)]
 		public System.Drawing.Color Value { get { return _Value; } set { _Value = value; R = _Value.R; G = _Value.G; B = _Value.B; A = _Value.A; } }
 
 		public override string ToString()
@@ -337,15 +341,18 @@ namespace FileReader
 		public ColorClass DockBackground { get; set; }
 
 		[TypeConverter(typeof(ExpandableObjectConverter))]
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Background")]
 		public ColorClass Background { get; set; }
 
 		[TypeConverter(typeof(ExpandableObjectConverter))]
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Foreground")]
 		public ColorClass Foreground { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "skin")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		[DisplayName("")]
 		public SkinClass Skin { get; set; }
@@ -399,14 +406,17 @@ namespace FileReader
 		}
 
 		[TypeConverter(typeof(ExpandableObjectConverter))]
+		[Newtonsoft.Json.JsonProperty(PropertyName = "start")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		public ColorClass Start { get; set; }
 
 		[TypeConverter(typeof(ExpandableObjectConverter))]
+		[Newtonsoft.Json.JsonProperty(PropertyName = "end")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		public ColorClass End { get; set; }
 
 		[TypeConverter(typeof(ExpandableObjectConverter))]
+		[Newtonsoft.Json.JsonProperty(PropertyName = "text")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		public ColorClass Text { get; set; }
 	}
@@ -427,10 +437,12 @@ namespace FileReader
 			get { return $"Start={Start.DebuggerDisplay}, End={End.DebuggerDisplay}"; }
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "start")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Start")]
 		public ColorClass Start { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "end")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("End")]
 		public ColorClass End { get; set; }
@@ -452,10 +464,12 @@ namespace FileReader
 			get { return $"Begin={Begin.DebuggerDisplay}, End={End.DebuggerDisplay}"; }
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "begin")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Start")]
+		[DisplayName("Begin")]
 		public ColorClass Begin { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "end")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("End")]
 		public ColorClass End { get; set; }
@@ -477,14 +491,17 @@ namespace FileReader
 			get { return $"Begin={Begin.DebuggerDisplay}, Middle={Middle.DebuggerDisplay}, End={End.DebuggerDisplay}"; }
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "begin")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Start")]
+		[DisplayName("Begin")]
 		public ColorClass Begin { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "middle")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Middle")]
 		public ColorClass Middle { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "end")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("End")]
 		public ColorClass End { get; set; }
@@ -572,14 +589,17 @@ namespace FileReader
 			return "";
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Background")]
 		public ColorClass Background { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Foreground")]
 		public ColorClass Foreground { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Border")]
 		public ColorClass Border { get; set; }
@@ -589,10 +609,12 @@ namespace FileReader
 		[DisplayName("Background-Dropdown")]
 		public ColorClass BackgroundDropdown { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "separator")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Separator")]
 		public ColorClass Separator { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "selected")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		public SelectedClass Selected { get; set; }
 
@@ -603,11 +625,13 @@ namespace FileReader
 				return "";
 			}
 
+			[Newtonsoft.Json.JsonProperty(PropertyName = "gradient")]
 			[DisplayName("Gradient")]
 			[TypeConverter(typeof(ExpandableObjectConverter))]
 			public BeginEndGradientClass Gradient { get; set; }
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "pressed")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		public SingleGradientClass Pressed { get; set; }
 
@@ -618,11 +642,13 @@ namespace FileReader
 				return "";
 			}
 
+			[Newtonsoft.Json.JsonProperty(PropertyName = "gradient")]
 			[DisplayName("Gradient")]
 			[TypeConverter(typeof(ExpandableObjectConverter))]
 			public BeginMiddleEndGradientClass Gradient { get; set; }
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "item")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		public ItemClass Item { get; set; }
 
@@ -633,15 +659,18 @@ namespace FileReader
 				return "";
 			}
 
+			[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
 			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 			[DisplayName("Border")]
 			public ColorClass Border { get; set; }
 
+			[Newtonsoft.Json.JsonProperty(PropertyName = "selected")]
 			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 			[DisplayName("Selected")]
 			public ColorClass Selected { get; set; }
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "check")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		public CheckClass Check { get; set; }
 
@@ -652,27 +681,33 @@ namespace FileReader
 				return "";
 			}
 
+			[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
 			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 			[DisplayName("Background")]
 			public ColorClass Background { get; set; }
 
+			[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
 			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 			[DisplayName("Foreground")]
 			public ColorClass Foreground { get; set; }
 
+			[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
 			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 			[DisplayName("Border")]
 			public ColorClass Border { get; set; }
 
+			[Newtonsoft.Json.JsonProperty(PropertyName = "selected")]
 			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 			[DisplayName("Selected")]
 			public ColorClass Selected { get; set; }
 
+			[Newtonsoft.Json.JsonProperty(PropertyName = "pressed")]
 			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 			[DisplayName("Pressed")]
 			public ColorClass Pressed { get; set; }
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "margin")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		public SingleGradientClass Margin { get; set; }
 	}
@@ -684,12 +719,15 @@ namespace FileReader
 			return "";
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		public ColorClass Background { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		public ColorClass Border { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "separator")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		public ColorClass Separator { get; set; }
 
@@ -712,13 +750,16 @@ namespace FileReader
 				return "";
 			}
 
+			[Newtonsoft.Json.JsonProperty(PropertyName = "light")]
 			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 			public ColorClass Light { get; set; }
 
+			[Newtonsoft.Json.JsonProperty(PropertyName = "dark")]
 			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 			public ColorClass Dark { get; set; }
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "grip")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		public GripClass Grip { get; set; }
 	}
@@ -730,35 +771,32 @@ namespace FileReader
 			return "";
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Background")]
 		public ColorClass Background { get; set; }
 	}
 
-	public class WelcomeClass
+	public class WelcomeClass:BackgroundForegroundClass
 	{
 		public override string ToString()
 		{
 			return "";
 		}
 
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Background")]
-		public ColorClass Background { get; set; }
-
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Foreground")]
-		public ColorClass Foreground { get; set; }
-
+		[Newtonsoft.Json.JsonProperty(PropertyName = "panel1")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		public BackgroundForegroundClass Panel1 { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "panel2")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		public BackgroundForegroundClass Panel2 { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "pnlTipOfTheDay")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		public BackgroundForegroundClass PnlTipOfTheDay { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "pnlRight")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		public BackgroundForegroundClass PnlRight { get; set; }
 	}
@@ -770,10 +808,12 @@ namespace FileReader
 			return "";
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Background")]
 		public ColorClass Background { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Foreground")]
 		public ColorClass Foreground { get; set; }
@@ -786,10 +826,12 @@ namespace FileReader
 			return "";
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Background")]
 		public ColorClass Background { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "line")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Line")]
 		public ColorClass Line { get; set; }
@@ -802,14 +844,17 @@ namespace FileReader
 			return "";
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Background")]
 		public ColorClass Background { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Foreground")]
 		public ColorClass Foreground { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "line")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Line")]
 		public ColorClass Line { get; set; }
@@ -822,14 +867,17 @@ namespace FileReader
 			return "";
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Background")]
 		public ColorClass Background { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Foreground")]
 		public ColorClass Foreground { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Border")]
 		public ColorClass Border { get; set; }
@@ -858,6 +906,7 @@ namespace FileReader
 			return "";
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Background")]
 		public ColorClass Background { get; set; }
