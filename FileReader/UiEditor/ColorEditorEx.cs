@@ -2,7 +2,6 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Design;
-using System.Drawing.Drawing2D;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Windows.Forms.Design;
@@ -34,7 +33,7 @@ namespace Design
 			private Label _lblAlpha;
 			private bool _inSizeChange = false;
 
-			#endregion
+			#endregion Fields
 
 			#region Constructors
 
@@ -42,7 +41,7 @@ namespace Design
 			/// Creates a new instance.
 			/// </summary>
 			/// <param name="colorEditor">The editor this instance belongs to.</param>
-			public ColorUIWrapper(ColorEditorEx colorEditor) 
+			public ColorUIWrapper(ColorEditorEx colorEditor)
 			{
 				Type colorUiType = typeof(ColorEditor).GetNestedType("ColorUI", BindingFlags.CreateInstance | BindingFlags.NonPublic);
 				ConstructorInfo constructorInfo = colorUiType.GetConstructor(new Type[] { typeof(ColorEditor) });
@@ -74,7 +73,7 @@ namespace Design
 				_control.SizeChanged += new EventHandler(OnControlSizeChanged);
 			}
 
-			#endregion
+			#endregion Constructors
 
 			#region Public interface
 
@@ -83,7 +82,7 @@ namespace Design
 			/// The concrete type is ColorUI which is privately hidden
 			/// within System.Drawing.Design.
 			/// </summary>
-			public Control Control 
+			public Control Control
 			{
 				get { return _control; }
 			}
@@ -91,12 +90,12 @@ namespace Design
 			/// <summary>
 			/// Gets the edited color with applied alpha value.
 			/// </summary>
-			public object Value 
+			public object Value
 			{
-				get 
+				get
 				{
 					object result = _valuePropertyInfo.GetValue(_control, new object[0]);
-					if (result is Color)
+					if ( result is Color )
 						result = Color.FromArgb(_tbAlpha.Value, (Color)result);
 					return result;
 				}
@@ -107,9 +106,9 @@ namespace Design
 			/// </summary>
 			/// <param name="service">The editor service.</param>
 			/// <param name="value">The value to be edited.</param>
-			public void Start(IWindowsFormsEditorService service, object value) 
+			public void Start(IWindowsFormsEditorService service, object value)
 			{
-				if (value is Color)
+				if ( value is Color )
 					_tbAlpha.Value = ((Color)value).A;
 
 				_startMethodInfo.Invoke(_control, new object[] { service, value });
@@ -118,21 +117,21 @@ namespace Design
 			/// <summary>
 			/// End the editing process.
 			/// </summary>
-			public void End() 
+			public void End()
 			{
 				_endMethodInfo.Invoke(_control, new object[0]);
 			}
 
-			#endregion
+			#endregion Public interface
 
 			#region Privates
 
 			private void OnControlSizeChanged(object sender, EventArgs e)
 			{
-				if (_inSizeChange)
+				if ( _inSizeChange )
 					return;
 
-				try 
+				try
 				{
 					_inSizeChange = true;
 
@@ -141,14 +140,14 @@ namespace Design
 					Size size = tabControl.TabPages[0].Controls[0].Size;
 					Rectangle rectangle = tabControl.GetTabRect(0);
 					_control.Size = new Size(_tbAlpha.Width + size.Width, size.Height + rectangle.Height);
-				} 
-				finally 
+				}
+				finally
 				{
 					_inSizeChange = false;
 				}
 			}
 
-			#endregion
+			#endregion Privates
 
 			private void OnTrackBarAlphaValueChanged(object sender, EventArgs e)
 			{
@@ -156,22 +155,22 @@ namespace Design
 			}
 		}
 
-		#endregion
+		#endregion Class ColorUIWrapper
 
 		#region Fields
 
 		private ColorUIWrapper _colorUI;
 
-		#endregion
+		#endregion Fields
 
 		#region Constructors
 
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
-		public ColorEditorEx() {}
+		public ColorEditorEx() { }
 
-		#endregion
+		#endregion Constructors
 
 		#region Overridden from ColorEditor
 
@@ -184,18 +183,18 @@ namespace Design
 		/// <returns>An edited value.</returns>
 		public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
 		{
-			if (provider != null)
+			if ( provider != null )
 			{
-				IWindowsFormsEditorService service = (IWindowsFormsEditorService) provider.GetService(typeof(IWindowsFormsEditorService));
-				if (service == null)
+				IWindowsFormsEditorService service = (IWindowsFormsEditorService)provider.GetService(typeof(IWindowsFormsEditorService));
+				if ( service == null )
 					return value;
 
-				if (_colorUI == null)
+				if ( _colorUI == null )
 					_colorUI = new ColorUIWrapper(this);
 
 				_colorUI.Start(service, value);
 				service.DropDownControl(_colorUI.Control);
-				if ((_colorUI.Value != null) && (((Color) _colorUI.Value) != Color.Empty))
+				if ( (_colorUI.Value != null) && (((Color)_colorUI.Value) != Color.Empty) )
 				{
 					value = _colorUI.Value;
 				}
@@ -204,29 +203,28 @@ namespace Design
 			return value;
 		}
 
-public override void PaintValue(PaintValueEventArgs e)
-{
-	if (e.Value is Color && ((Color)e.Value).A < byte.MaxValue) 
-	{
-		int oneThird = e.Bounds.Width / 3;
-		using (SolidBrush brush = new SolidBrush(Color.White))
+		public override void PaintValue(PaintValueEventArgs e)
 		{
-			e.Graphics.FillRectangle(brush, new Rectangle(e.Bounds.X, e.Bounds.Y, oneThird, e.Bounds.Height - 1));
-		}
-		using (SolidBrush brush = new SolidBrush(Color.DarkGray))
-		{
-			e.Graphics.FillRectangle(brush, new Rectangle(e.Bounds.X + oneThird, e.Bounds.Y, oneThird, e.Bounds.Height - 1));
-		}
-		using (SolidBrush brush = new SolidBrush(Color.Black))
-		{
-			e.Graphics.FillRectangle(brush, new Rectangle(e.Bounds.X + oneThird * 2, e.Bounds.Y, e.Bounds.Width - oneThird * 2, e.Bounds.Height - 1));
-		}
-	}
+			if ( e.Value is Color && ((Color)e.Value).A < byte.MaxValue )
+			{
+				int oneThird = e.Bounds.Width / 3;
+				using ( SolidBrush brush = new SolidBrush(Color.White) )
+				{
+					e.Graphics.FillRectangle(brush, new Rectangle(e.Bounds.X, e.Bounds.Y, oneThird, e.Bounds.Height - 1));
+				}
+				using ( SolidBrush brush = new SolidBrush(Color.DarkGray) )
+				{
+					e.Graphics.FillRectangle(brush, new Rectangle(e.Bounds.X + oneThird, e.Bounds.Y, oneThird, e.Bounds.Height - 1));
+				}
+				using ( SolidBrush brush = new SolidBrush(Color.Black) )
+				{
+					e.Graphics.FillRectangle(brush, new Rectangle(e.Bounds.X + oneThird * 2, e.Bounds.Y, e.Bounds.Width - oneThird * 2, e.Bounds.Height - 1));
+				}
+			}
 
-	base.PaintValue(e);
-}
+			base.PaintValue(e);
+		}
 
-
-		#endregion
+		#endregion Overridden from ColorEditor
 	}
 }

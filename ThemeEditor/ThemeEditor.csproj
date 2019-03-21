@@ -53,9 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="editor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
+    <Compile Include="editor.cs" />
     <Compile Include="editor.Designer.cs">
       <DependentUpon>editor.cs</DependentUpon>
     </Compile>
