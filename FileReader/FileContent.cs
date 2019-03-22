@@ -4,194 +4,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Design;
-using System.Globalization;
-using System.Windows.Forms;
-using System.Windows.Forms.Design;
+
+using Theme.Converter;
+using Theme.Editor;
 
 namespace FileReader
 {
-	public class NoTypeConverterJsonConverter<T> : Newtonsoft.Json.JsonConverter
-	{
-		private static readonly IContractResolver resolver = new NoTypeConverterContractResolver();
-
-		private class NoTypeConverterContractResolver : DefaultContractResolver
-		{
-			protected override JsonContract CreateContract(Type objectType)
-			{
-				if ( typeof(T).IsAssignableFrom(objectType) )
-				{
-					var contract = this.CreateObjectContract(objectType);
-					contract.Converter = null; // Also null out the converter to prevent infinite recursion.
-					return contract;
-				}
-				return base.CreateContract(objectType);
-			}
-		}
-
-		public override bool CanConvert(Type objectType)
-		{
-			return typeof(T).IsAssignableFrom(objectType);
-		}
-
-		public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, Newtonsoft.Json.JsonSerializer serializer)
-		{
-			//return JsonSerializer.CreateDefault(new JsonSerializerSettings { ContractResolver = resolver }).Deserialize(reader, objectType);
-			return Newtonsoft.Json.JsonSerializer.Create(new Newtonsoft.Json.JsonSerializerSettings { ContractResolver = resolver }).Deserialize(reader, objectType);
-		}
-
-		public override void WriteJson(Newtonsoft.Json.JsonWriter writer, object value, Newtonsoft.Json.JsonSerializer serializer)
-		{
-			//JsonSerializer.CreateDefault(new JsonSerializerSettings { ContractResolver = resolver }).Serialize(writer, value);
-			Newtonsoft.Json.JsonSerializer.Create(new Newtonsoft.Json.JsonSerializerSettings { ContractResolver = resolver }).Serialize(writer, value);
-		}
-	}
-
-	public class MyColorConverter : TypeConverter
-	{
-		// This is used, for example, by DefaultValueAttribute to convert from string to MyColor.
-		public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
-		{
-			if ( value.GetType() == typeof(string) )
-				return new ColorClass((string)value);
-			return base.ConvertFrom(context, culture, value);
-		}
-
-		// This is used, for example, by the PropertyGrid to convert MyColor to a string.
-		public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destType)
-		{
-			if ( (destType == typeof(string)) && (value is ColorClass) )
-			{
-				ColorClass color = (ColorClass)value;
-				return color.ToString();
-			}
-			else if ( (destType == typeof(string)) && (value is Color) )
-			{
-			}
-			return base.ConvertTo(context, culture, value, destType);
-		}
-
-		public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
-		{
-			return true;
-			//return base.CanConvertFrom(context, sourceType);
-		}
-
-		public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
-		{
-			return true;
-			//return base.CanConvertTo(context, destinationType);
-		}
-
-		public override bool GetPropertiesSupported(ITypeDescriptorContext context)
-		{
-			return base.GetPropertiesSupported(context);
-		}
-	}
-
-	public class MyColorEditor : UITypeEditor
-	{
-		private IWindowsFormsEditorService service;
-		private Bitmap b = new Bitmap(10, 10);
-
-		public MyColorEditor()
-		{
-			using ( Graphics graphics = Graphics.FromImage(b) )
-			{
-				graphics.FillRectangle(Brushes.LightGray, 0, 0, b.Width, b.Height);
-				graphics.FillRectangle(Brushes.DarkGray, 0, 0, 5, 5);
-				graphics.FillRectangle(Brushes.DarkGray, 5, 5, 5, 5);
-			}
-		}
-
-		public override UITypeEditorEditStyle GetEditStyle(ITypeDescriptorContext context)
-		{
-			// This tells it to show the [...] button which is clickable firing off EditValue below.
-			return UITypeEditorEditStyle.Modal;
-			//return UITypeEditorEditStyle.DropDown;
-		}
-
-		public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
-		{
-			if ( provider != null )
-				service = (IWindowsFormsEditorService)provider.GetService(typeof(IWindowsFormsEditorService));
-
-			if ( service != null )
-			{
-				// This is the code you want to run when the [...] is clicked and after it has been verified.
-
-				// Get our currently selected color.
-				ColorClass color = (ColorClass)value;
-
-				// Create a new instance of the ColorDialog.
-				ColorDialog selectionControl = new ColorDialog();
-
-				// Set the selected color in the dialog.
-				selectionControl.Color = Color.FromArgb(color.GetARGB());
-
-				// Show the dialog.
-				selectionControl.ShowDialog();
-
-				// Return the newly selected color.
-				value = new ColorClass(selectionControl.Color.ToArgb());
-			}
-
-			return value;
-		}
-
-		public override bool GetPaintValueSupported(ITypeDescriptorContext context)
-		{
-			return true;
-			//return base.GetPaintValueSupported(context);
-		}
-
-		public override void PaintValue(PaintValueEventArgs e)
-		{
-			ColorClass c = (ColorClass)e.Value;
-
-			if ( c != null )
-			{
-				TextureBrush tb = new TextureBrush(b);
-
-				if ( c.A < 255 )
-				{
-					e.Graphics.FillRectangle(tb, e.Bounds);
-				}
-				e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(c.A, c.R, c.G, c.B)), e.Bounds);
-				//e.Graphics.DrawRectangle(Pens.Black, e.Bounds);
-			}
-
-			base.PaintValue(e);
-		}
-	}
-
-	public class EmptyConverter : TypeConverter
-	{
-	}
-
-	public class EmptyEditor : UITypeEditor
-	{
-		private IWindowsFormsEditorService service;
-
-		public override UITypeEditorEditStyle GetEditStyle(ITypeDescriptorContext context)
-		{
-			// This tells it to show the [...] button which is clickable firing off EditValue below.
-			return UITypeEditorEditStyle.None;
-			//return UITypeEditorEditStyle.DropDown;
-		}
-
-		public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
-		{
-			if ( provider != null )
-				service = (IWindowsFormsEditorService)provider.GetService(typeof(IWindowsFormsEditorService));
-
-			if ( service != null )
-			{
-			}
-
-			return "sdf";
-		}
-	}
-
 	[System.Diagnostics.DebuggerDisplay("{DebuggerDisplay,nq}")]
 	[DisplayName("Color")]
 	[TypeConverter(typeof(MyColorConverter))]
@@ -325,6 +143,88 @@ namespace FileReader
 
 			return BitConverter.ToInt32(temp, 0);
 		}
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+		private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
 	}
 
 	[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
