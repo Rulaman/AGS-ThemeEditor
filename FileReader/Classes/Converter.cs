@@ -1,11 +1,11 @@
 ﻿namespace Theme.Converter
 {
+	using FileReader;
+	using Newtonsoft.Json.Serialization;
 	using System;
 	using System.ComponentModel;
-	using System.Globalization;
-	using Newtonsoft.Json.Serialization;
-	using FileReader;
 	using System.Drawing;
+	using System.Globalization;
 
 	public class NoTypeConverterJsonConverter<T> : Newtonsoft.Json.JsonConverter
 	{

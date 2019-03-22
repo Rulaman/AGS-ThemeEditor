@@ -193,6 +193,7 @@ namespace FileReader
 		}
 
 		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
 		private System.Windows.Forms.Form MainForm = null;
 
 		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
@@ -677,7 +678,7 @@ namespace FileReader
 		public ColorClass Background { get; set; }
 	}
 
-	public class WelcomeClass:BackgroundForegroundClass
+	public class WelcomeClass : BackgroundForegroundClass
 	{
 		public override string ToString()
 		{
@@ -1714,9 +1715,12 @@ namespace FileReader
 		// http://www.newtonsoft.com/json/help/html/ContractResolver.htm
 		// http://www.newtonsoft.com/json/help/html/M_Newtonsoft_Json_Serialization_DefaultContractResolver__ctor_1.htm
 		// "Use the parameterless constructor and cache instances of the contract resolver within your application for optimal performance."
-		static BaseFirstContractResolver instance;
+		private static BaseFirstContractResolver instance;
 
-		static BaseFirstContractResolver() { instance = new BaseFirstContractResolver(); }
+		static BaseFirstContractResolver()
+		{
+			instance = new BaseFirstContractResolver();
+		}
 
 		public static BaseFirstContractResolver Instance { get { return instance; } }
 
@@ -1731,7 +1735,6 @@ namespace FileReader
 
 			return properties;
 		}
-
 
 		//protected override System.Collections.Generic.IList<JsonProperty> CreateProperties(Type type, Newtonsoft.Json.MemberSerialization memberSerialization)
 		//{
@@ -1754,7 +1757,6 @@ namespace FileReader
 		}
 	}
 }
-
 
 namespace System
 {

@@ -59,7 +59,6 @@ namespace ThemeApp
 				FilePath = sfd.FileName;
 				AGSTheme.Write(FilePath);
 			}
-
 		}
 	}
 }
