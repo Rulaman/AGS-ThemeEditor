@@ -1,6 +1,6 @@
-﻿//using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+﻿using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Design;
@@ -967,6 +967,7 @@ namespace FileReader
 			return "";
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Background")]
 		public ColorClass Background { get; set; }
@@ -975,6 +976,11 @@ namespace FileReader
 		[DisplayName("ComboBox")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		public ComboboxClass Combobox { get; set; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "grid")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public GridClass Grid { get; set; }
 	}
 
 	public class GridClass
@@ -984,14 +990,17 @@ namespace FileReader
 			return "";
 		}
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Background")]
 		public ColorClass Background { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "line")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Line")]
 		public ColorClass Line { get; set; }
 
+		[Newtonsoft.Json.JsonProperty(PropertyName = "category")]
 		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
 		[DisplayName("Category")]
 		public ColorClass Category { get; set; }
@@ -1268,7 +1277,7 @@ namespace FileReader
 
 	public class LipSyncEditorClass : BackgroundForegroundClass
 	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "main-container")]
+		[Newtonsoft.Json.JsonProperty(PropertyName = "text-boxes")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		public TextBoxClass TextBox { get; set; }
 	}
@@ -1787,6 +1796,8 @@ namespace FileReader
 		{
 			using ( System.IO.FileStream filestream = System.IO.File.Open(filePath, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.Read) )
 			{
+				//var settings = new Newtonsoft.Json.JsonSerializerSettings { ContractResolver = BaseFirstContractResolver.Instance };
+				//string json = Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented, settings);
 				string json = Newtonsoft.Json.JsonConvert.SerializeObject(this.Content, Newtonsoft.Json.Formatting.Indented);
 
 				using ( System.IO.StreamWriter sw = new System.IO.StreamWriter(filestream, System.Text.Encoding.ASCII) )
@@ -1796,4 +1807,63 @@ namespace FileReader
 			}
 		}
 	}
+
+	public class BaseFirstContractResolver : DefaultContractResolver
+	{
+		// As of 7.0.1, Json.NET suggests using a static instance for "stateless" contract resolvers, for performance reasons.
+		// http://www.newtonsoft.com/json/help/html/ContractResolver.htm
+		// http://www.newtonsoft.com/json/help/html/M_Newtonsoft_Json_Serialization_DefaultContractResolver__ctor_1.htm
+		// "Use the parameterless constructor and cache instances of the contract resolver within your application for optimal performance."
+		static BaseFirstContractResolver instance;
+
+		static BaseFirstContractResolver() { instance = new BaseFirstContractResolver(); }
+
+		public static BaseFirstContractResolver Instance { get { return instance; } }
+
+		protected override IList<JsonProperty> CreateProperties(JsonObjectContract contract)
+		{
+			var properties = base.CreateProperties(contract);
+
+			//if ( properties != null )
+			//{
+			//	return ((List<JsonProperty>)properties).Sort(delegate (Point p1, Point p2) { return p1.X.CompareTo(p2.X); });
+			//}
+
+			return properties;
+		}
+
+
+		//protected override System.Collections.Generic.IList<JsonProperty> CreateProperties(Type type, Newtonsoft.Json.MemberSerialization memberSerialization)
+		//{
+		//	var properties = base.CreateProperties(type, memberSerialization);
+		//	if ( properties != null )
+		//		return properties.OrderBy(p => p.DeclaringType.BaseTypesAndSelf().Count()).ToList();
+		//	return properties;
+		//}
+	}
+
+	public static class TypeExtensions
+	{
+		public static System.Collections.Generic.IEnumerable<Type> BaseTypesAndSelf(this Type type)
+		{
+			while ( type != null )
+			{
+				yield return type;
+				type = type.BaseType;
+			}
+		}
+	}
+}
+
+
+namespace System
+{
+	public delegate void Action();
+}
+
+namespace System.Runtime.CompilerServices
+{
+	[AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class |
+		AttributeTargets.Method)]
+	public sealed class ExtensionAttribute : Attribute { }
 }
