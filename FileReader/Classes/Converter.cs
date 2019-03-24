@@ -7,7 +7,7 @@
 	using System.Drawing;
 	using System.Globalization;
 
-	public class NoTypeConverterJsonConverter<T> : Newtonsoft.Json.JsonConverter
+	public class ColorClassJsonConverter<T> : Newtonsoft.Json.JsonConverter
 	{
 		private static readonly IContractResolver resolver = new NoTypeConverterContractResolver();
 

@@ -1,8 +1,5 @@
-﻿using Newtonsoft.Json.Serialization;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel;
-using System.Drawing;
 using System.Drawing.Design;
 
 using Theme.Converter;
@@ -13,7 +10,7 @@ namespace FileReader
 	[System.Diagnostics.DebuggerDisplay("{DebuggerDisplay,nq}")]
 	[DisplayName("Color")]
 	[TypeConverter(typeof(MyColorConverter))]
-	[Newtonsoft.Json.JsonConverter(typeof(NoTypeConverterJsonConverter<ColorClass>))]
+	[Newtonsoft.Json.JsonConverter(typeof(ColorClassJsonConverter<ColorClass>))]
 	public class ColorClass
 	{
 		#region DebuggerDisplay
@@ -37,56 +34,34 @@ namespace FileReader
 
 		#endregion DebuggerDisplay
 
-		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
-		private byte _R;
-
 		[Browsable(false)]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "r")]
-		public byte R { get { return _R; } set { _R = value; _Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
-
-		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
-		private byte _G;
+		public byte R { get => Get<byte>(0); set { Notify(value); _Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
 
 		[Browsable(false)]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "g")]
-		public byte G { get { return _G; } set { _G = value; _Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
-
-		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
-		private byte _B;
+		public byte G { get => Get<byte>(0); set { Notify(value); _Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
 
 		[Browsable(false)]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "b")]
-		public byte B { get { return _B; } set { _B = value; _Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
-
-		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
-		private byte _A;
+		public byte B { get => Get<byte>(0); set { Notify(value); _Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
 
 		[Browsable(false)]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "a")]
-		public byte A { get { return _A; } set { _A = value; _Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
+		public byte A { get => Get<byte>(0); set { Notify(value); _Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
 
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
 		private System.Drawing.Color _Value;
 
 		[Newtonsoft.Json.JsonIgnore, Browsable(false)]
-		public System.Drawing.Color Value { get { return _Value; } set { _Value = value; R = _Value.R; G = _Value.G; B = _Value.B; A = _Value.A; } }
+		public System.Drawing.Color Value { get => Get(System.Drawing.Color.FromArgb(255, 0, 0, 0)); set { Notify(value); R = value.R; G = value.G; B = value.B; A = value.A; } }
 
 		public override string ToString()
 		{
 			System.ComponentModel.TypeConverter converter = System.ComponentModel.TypeDescriptor.GetConverter(Value);
 			string colorAsString = converter.ConvertToString(Value);
 
-			//return $"Color [A={_A}, R={_R}, G={_G}, B={_B}]";
-
 			return colorAsString;
-		}
-
-		public ColorClass(Color color)
-		{
-		}
-
-		public ColorClass()
-		{
 		}
 
 		public ColorClass(string rgb)
@@ -104,7 +79,6 @@ namespace FileReader
 
 			if ( parts.Length == 3 )
 			{
-				//throw new Exception("Array must have a length of 3.");
 				A = 255;
 				R = Convert.ToByte(parts[0]);
 				G = Convert.ToByte(parts[1]);
@@ -132,14 +106,16 @@ namespace FileReader
 			B = bytes[0];
 		}
 
+		public ColorClass() { }
+
 		public byte[] GetRGB()
 		{
-			return new byte[] { _R, _G, _B };
+			return new byte[] { R, G, B };
 		}
 
 		public int GetARGB()
 		{
-			byte[] temp = new byte[] { _B, _G, _R, _A };
+			byte[] temp = new byte[] { B, G, R, A };
 
 			return BitConverter.ToInt32(temp, 0);
 		}
@@ -231,32 +207,106 @@ namespace FileReader
 	[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
 	public class MainContainerClass
 	{
-		public override string ToString()
+		public override string ToString() { return ""; }
+
+		[TypeConverter(typeof(ExpandableObjectConverter)), Editor(typeof(MyColorEditor), typeof(UITypeEditor))]
+		[Newtonsoft.Json.JsonProperty(PropertyName = "dock-background"), DisplayName("Dock Background")]
+		public ColorClass DockBackground { get => Get(new ColorClass(-16777216)); set { Notify(value); } }
+
+		[TypeConverter(typeof(ExpandableObjectConverter)), Editor(typeof(MyColorEditor), typeof(UITypeEditor))]
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background"), DisplayName("Background")]
+		public ColorClass Background { get => Get(new ColorClass(-16777216)); set { Notify(value); } }
+
+		[TypeConverter(typeof(ExpandableObjectConverter)), Editor(typeof(MyColorEditor), typeof(UITypeEditor))]
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground"), DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(new ColorClass(-16777216)); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "skin"), DisplayName("Skin")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public SkinClass Skin { get => Get(new SkinClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
 		{
-			return "";
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			return defaultvalue;
 		}
 
-		[Newtonsoft.Json.JsonProperty(PropertyName = "dock-background")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("DockBackground")]
-		public ColorClass DockBackground { get; set; }
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
 
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Background")]
-		public ColorClass Background { get; set; }
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
 
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Foreground")]
-		public ColorClass Foreground { get; set; }
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
 
-		[Newtonsoft.Json.JsonProperty(PropertyName = "skin")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		[DisplayName("")]
-		public SkinClass Skin { get; set; }
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
 	}
 
 	public class SkinClass
@@ -266,60 +316,298 @@ namespace FileReader
 			return "";
 		}
 
-		[Newtonsoft.Json.JsonProperty(PropertyName = "auto-hide")]
+		[Newtonsoft.Json.JsonProperty(PropertyName = "auto-hide"), DisplayName("")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
-		[DisplayName("")]
-		public AutoHideClass AutoHide { get; set; }
+		public AutoHideClass AutoHide { get => Get(new AutoHideClass()); set { Notify(value); } }
 
-		[Newtonsoft.Json.JsonProperty(PropertyName = "dock-pane")]
+		[Newtonsoft.Json.JsonProperty(PropertyName = "dock-pane"), DisplayName("")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
-		[DisplayName("")]
-		public DockPaneClass DockPane { get; set; }
+		public DockPaneClass DockPane { get => Get(new DockPaneClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
 	}
 
 	public class AutoHideClass
 	{
+		public override string ToString() { return ""; }
+
 		[Newtonsoft.Json.JsonProperty(PropertyName = "tab-gradient")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		[DisplayName("")]
-		public TabGradientClass TabGradient { get; set; }
+		public TabGradientClass TabGradient { get => Get(new TabGradientClass()); set { Notify(value); } }
 
 		[Newtonsoft.Json.JsonProperty(PropertyName = "dock-strip-gradient")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
 		[DisplayName("")]
-		public StartEndGradientClass DocStripGradient { get; set; }
+		public StartEndGradientClass DocStripGradient { get => Get(new StartEndGradientClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
 	}
 
 	[System.Diagnostics.DebuggerDisplay("{DebuggerDisplay,nq}")]
-	[DisplayName("")]
 	public class TabGradientClass
 	{
-		public override string ToString()
-		{
-			return "";
-		}
+		public override string ToString() { return ""; }
 
-		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
-		[Newtonsoft.Json.JsonIgnore, Browsable(false)]
-		public string DebuggerDisplay
-		{
-			get { return $"Start={Start.DebuggerDisplay}, End={End.DebuggerDisplay}, Text={Text.DebuggerDisplay}"; }
-		}
+		[Newtonsoft.Json.JsonIgnore, Browsable(false), System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		public string DebuggerDisplay { get { return $"Start={Start.DebuggerDisplay}, End={End.DebuggerDisplay}, Text={Text.DebuggerDisplay}"; } }
 
-		[TypeConverter(typeof(ExpandableObjectConverter))]
+		[TypeConverter(typeof(ExpandableObjectConverter)), Editor(typeof(MyColorEditor), typeof(UITypeEditor))]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "start")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		public ColorClass Start { get; set; }
+		public ColorClass Start { get => Get(new ColorClass(-16777216)); set { Notify(value); } }
 
-		[TypeConverter(typeof(ExpandableObjectConverter))]
+		[TypeConverter(typeof(ExpandableObjectConverter)), Editor(typeof(MyColorEditor), typeof(UITypeEditor))]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "end")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		public ColorClass End { get; set; }
+		public ColorClass End { get => Get(new ColorClass(-16777216)); set { Notify(value); } }
 
-		[TypeConverter(typeof(ExpandableObjectConverter))]
+		[TypeConverter(typeof(ExpandableObjectConverter)), Editor(typeof(MyColorEditor), typeof(UITypeEditor))]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "text")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		public ColorClass Text { get; set; }
+		public ColorClass Text { get => Get(new ColorClass(-16777216)); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
 	}
 
 	[System.Diagnostics.DebuggerDisplay("{DebuggerDisplay,nq}")]
@@ -1709,7 +1997,7 @@ namespace FileReader
 		}
 	}
 
-	public class BaseFirstContractResolver : DefaultContractResolver
+	public class BaseFirstContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
 	{
 		// As of 7.0.1, Json.NET suggests using a static instance for "stateless" contract resolvers, for performance reasons.
 		// http://www.newtonsoft.com/json/help/html/ContractResolver.htm
@@ -1724,7 +2012,7 @@ namespace FileReader
 
 		public static BaseFirstContractResolver Instance { get { return instance; } }
 
-		protected override IList<JsonProperty> CreateProperties(JsonObjectContract contract)
+		protected override System.Collections.Generic.IList<Newtonsoft.Json.Serialization.JsonProperty> CreateProperties(Newtonsoft.Json.Serialization.JsonObjectContract contract)
 		{
 			var properties = base.CreateProperties(contract);
 
