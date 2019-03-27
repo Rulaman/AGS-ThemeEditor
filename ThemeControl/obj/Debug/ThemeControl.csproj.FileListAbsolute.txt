@@ -1,0 +1,9 @@
+A:\Development\Sourcecodes\ProjekteWindows\ThemeEditor\ThemeControl\obj\Debug\ThemeControl.csprojAssemblyReference.cache
+A:\Development\Sourcecodes\ProjekteWindows\ThemeEditor\ThemeControl\obj\Debug\ThemeControl.csproj.GenerateResource.cache
+A:\Development\Sourcecodes\ProjekteWindows\ThemeEditor\ThemeControl\obj\Debug\ThemeControl.csproj.CoreCompileInputs.cache
+A:\Development\Sourcecodes\ProjekteWindows\ThemeEditor\ThemeControl\bin\Debug\ThemeControl.dll
+A:\Development\Sourcecodes\ProjekteWindows\ThemeEditor\ThemeControl\bin\Debug\ThemeControl.pdb
+A:\Development\Sourcecodes\ProjekteWindows\ThemeEditor\ThemeControl\obj\Debug\ThemeControl.dll
+A:\Development\Sourcecodes\ProjekteWindows\ThemeEditor\ThemeControl\obj\Debug\ThemeControl.pdb
+A:\Development\Sourcecodes\ProjekteWindows\ThemeEditor\ThemeControl\obj\Debug\ThemeControl.ColorControl.resources
+A:\Development\Sourcecodes\ProjekteWindows\ThemeEditor\ThemeControl\obj\Debug\ThemeControl.Controls.InstanceControl.resources

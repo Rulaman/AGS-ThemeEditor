@@ -64,6 +64,11 @@
 			else if ( (destType == typeof(string)) && (value is Color) )
 			{
 			}
+			else if ( (destType == typeof(Color)) && (value is ColorClass) )
+			{
+				return ((ColorClass)value).GetColor();
+			}
+
 			return base.ConvertTo(context, culture, value, destType);
 		}
 

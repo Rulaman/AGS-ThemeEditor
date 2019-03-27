@@ -75,6 +75,10 @@
       <Project>{07245310-80f1-4394-b93f-a3b7dba5cbdc}</Project>
       <Name>FileReader</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ThemeControl\ThemeControl.csproj">
+      <Project>{7beffea2-fbab-4eac-a4b9-3c7ecf7a5fc4}</Project>
+      <Name>ThemeControl</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

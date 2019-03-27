@@ -7,23 +7,25 @@ using Theme.Editor;
 
 namespace FileReader
 {
+	public class DEFINE { public const int STD_COLOR = -16777216; public static ColorClass COLORNORMAL = new ColorClass(-16777216);  }
+
 	[System.Diagnostics.DebuggerDisplay("{DebuggerDisplay,nq}")]
 	[DisplayName("Color")]
 	[TypeConverter(typeof(MyColorConverter))]
 	[Newtonsoft.Json.JsonConverter(typeof(ColorClassJsonConverter<ColorClass>))]
-	public class ColorClass
+	public class ColorClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
 	{
 		#region DebuggerDisplay
 
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
 		[Newtonsoft.Json.JsonIgnore, Browsable(false)]
-		public string DebuggerDisplay
+		internal string DebuggerDisplay
 		{
 			get
 			{
-				if ( _Value.IsKnownColor )
+				if ( Value.IsKnownColor )
 				{
-					return $"RGBA={R},{G},{B},{A}  {_Value.ToKnownColor()}";
+					return $"RGBA={R},{G},{B},{A}  {Value.ToKnownColor()}";
 				}
 				else
 				{
@@ -36,25 +38,22 @@ namespace FileReader
 
 		[Browsable(false)]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "r")]
-		public byte R { get => Get<byte>(0); set { Notify(value); _Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
+		public byte R { get => Get<byte>(0); set { Notify(value); Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
 
 		[Browsable(false)]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "g")]
-		public byte G { get => Get<byte>(0); set { Notify(value); _Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
+		public byte G { get => Get<byte>(0); set { Notify(value); Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
 
 		[Browsable(false)]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "b")]
-		public byte B { get => Get<byte>(0); set { Notify(value); _Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
+		public byte B { get => Get<byte>(0); set { Notify(value); Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
 
 		[Browsable(false)]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "a")]
-		public byte A { get => Get<byte>(0); set { Notify(value); _Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
-
-		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
-		private System.Drawing.Color _Value;
+		public byte A { get => Get<byte>(0); set { Notify(value); Value = System.Drawing.Color.FromArgb(A, R, G, B); } }
 
 		[Newtonsoft.Json.JsonIgnore, Browsable(false)]
-		public System.Drawing.Color Value { get => Get(System.Drawing.Color.FromArgb(255, 0, 0, 0)); set { Notify(value); R = value.R; G = value.G; B = value.B; A = value.A; } }
+		public System.Drawing.Color Value { get => Get(System.Drawing.Color.FromArgb(255, 0, 0, 0)); set { Notify(value); } }
 
 		public override string ToString()
 		{
@@ -97,6 +96,11 @@ namespace FileReader
 			}
 		}
 
+		public System.Drawing.Color GetColor()
+		{
+			return System.Drawing.Color.FromArgb(A, R, G, B);
+		}
+
 		public ColorClass(int argb)
 		{
 			byte[] bytes = BitConverter.GetBytes(argb);
@@ -104,6 +108,14 @@ namespace FileReader
 			R = bytes[2];
 			G = bytes[1];
 			B = bytes[0];
+		}
+
+		public ColorClass(byte a, byte r, byte g, byte b)
+		{
+			A = a;
+			R = r;
+			G = g;
+			B = b;
 		}
 
 		public ColorClass() { }
@@ -134,7 +146,17 @@ namespace FileReader
 
 			if ( _properties.TryGetValue(name, out object value) )
 			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
 				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
 			}
 
 			return defaultvalue;
@@ -170,7 +192,7 @@ namespace FileReader
 
 		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
 
-		private System.Windows.Forms.Form MainForm = null;
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
 
 		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
 		{
@@ -202,24 +224,77 @@ namespace FileReader
 		}
 
 		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
 	}
 
 	[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-	public class MainContainerClass
+	public class MainContainerClass: INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
 	{
 		public override string ToString() { return ""; }
 
 		[TypeConverter(typeof(ExpandableObjectConverter)), Editor(typeof(MyColorEditor), typeof(UITypeEditor))]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "dock-background"), DisplayName("Dock Background")]
-		public ColorClass DockBackground { get => Get(new ColorClass(-16777216)); set { Notify(value); } }
+		public ColorClass DockBackground { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
 
 		[TypeConverter(typeof(ExpandableObjectConverter)), Editor(typeof(MyColorEditor), typeof(UITypeEditor))]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "background"), DisplayName("Background")]
-		public ColorClass Background { get => Get(new ColorClass(-16777216)); set { Notify(value); } }
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
 
 		[TypeConverter(typeof(ExpandableObjectConverter)), Editor(typeof(MyColorEditor), typeof(UITypeEditor))]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground"), DisplayName("Foreground")]
-		public ColorClass Foreground { get => Get(new ColorClass(-16777216)); set { Notify(value); } }
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
 
 		[Newtonsoft.Json.JsonProperty(PropertyName = "skin"), DisplayName("Skin")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
@@ -239,7 +314,17 @@ namespace FileReader
 
 			if ( _properties.TryGetValue(name, out object value) )
 			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
 				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
 			}
 
 			return defaultvalue;
@@ -275,7 +360,7 @@ namespace FileReader
 
 		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
 
-		private System.Windows.Forms.Form MainForm = null;
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
 
 		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
 		{
@@ -307,9 +392,62 @@ namespace FileReader
 		}
 
 		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
 	}
 
-	public class SkinClass
+	public class SkinClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
 	{
 		public override string ToString()
 		{
@@ -338,7 +476,17 @@ namespace FileReader
 
 			if ( _properties.TryGetValue(name, out object value) )
 			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
 				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
 			}
 
 			return defaultvalue;
@@ -374,7 +522,7 @@ namespace FileReader
 
 		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
 
-		private System.Windows.Forms.Form MainForm = null;
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
 
 		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
 		{
@@ -406,9 +554,62 @@ namespace FileReader
 		}
 
 		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
 	}
 
-	public class AutoHideClass
+	public class AutoHideClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
 	{
 		public override string ToString() { return ""; }
 
@@ -436,7 +637,17 @@ namespace FileReader
 
 			if ( _properties.TryGetValue(name, out object value) )
 			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
 				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
 			}
 
 			return defaultvalue;
@@ -472,7 +683,7 @@ namespace FileReader
 
 		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
 
-		private System.Windows.Forms.Form MainForm = null;
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
 
 		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
 		{
@@ -504,27 +715,80 @@ namespace FileReader
 		}
 
 		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
 	}
 
 	[System.Diagnostics.DebuggerDisplay("{DebuggerDisplay,nq}")]
-	public class TabGradientClass
+	public class TabGradientClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
 	{
 		public override string ToString() { return ""; }
 
 		[Newtonsoft.Json.JsonIgnore, Browsable(false), System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
-		public string DebuggerDisplay { get { return $"Start={Start.DebuggerDisplay}, End={End.DebuggerDisplay}, Text={Text.DebuggerDisplay}"; } }
+		internal string DebuggerDisplay { get => $"Start={Start.DebuggerDisplay}, End={End.DebuggerDisplay}, Text={Text.DebuggerDisplay}"; }
 
 		[TypeConverter(typeof(ExpandableObjectConverter)), Editor(typeof(MyColorEditor), typeof(UITypeEditor))]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "start")]
-		public ColorClass Start { get => Get(new ColorClass(-16777216)); set { Notify(value); } }
+		public ColorClass Start { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
 
 		[TypeConverter(typeof(ExpandableObjectConverter)), Editor(typeof(MyColorEditor), typeof(UITypeEditor))]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "end")]
-		public ColorClass End { get => Get(new ColorClass(-16777216)); set { Notify(value); } }
+		public ColorClass End { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
 
 		[TypeConverter(typeof(ExpandableObjectConverter)), Editor(typeof(MyColorEditor), typeof(UITypeEditor))]
 		[Newtonsoft.Json.JsonProperty(PropertyName = "text")]
-		public ColorClass Text { get => Get(new ColorClass(-16777216)); set { Notify(value); } }
+		public ColorClass Text { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
 
 		#region INotifyPropertyChanged - New
 
@@ -540,7 +804,17 @@ namespace FileReader
 
 			if ( _properties.TryGetValue(name, out object value) )
 			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
 				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
 			}
 
 			return defaultvalue;
@@ -576,7 +850,9618 @@ namespace FileReader
 
 		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
 
-		private System.Windows.Forms.Form MainForm = null;
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	[System.Diagnostics.DebuggerDisplay("{DebuggerDisplay,nq}")]
+	[DisplayName("")]
+	public class StartEndGradientClass: INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		[Newtonsoft.Json.JsonIgnore, Browsable(false)]
+		internal string DebuggerDisplay
+		{
+			get { return $"Start={Start.DebuggerDisplay}, End={End.DebuggerDisplay}"; }
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "start")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Start")]
+		public ColorClass Start { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "end")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("End")]
+		public ColorClass End { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	[System.Diagnostics.DebuggerDisplay("{DebuggerDisplay,nq}")]
+	[DisplayName("")]
+	public class BeginEndGradientClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		[Newtonsoft.Json.JsonIgnore, Browsable(false)]
+		internal string DebuggerDisplay
+		{
+			get { return $"Begin={Begin.DebuggerDisplay}, End={End.DebuggerDisplay}"; }
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "begin")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Begin")]
+		public ColorClass Begin { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "end")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("End")]
+		public ColorClass End { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	[System.Diagnostics.DebuggerDisplay("{DebuggerDisplay,nq}")]
+	[DisplayName("")]
+	public class BeginMiddleEndGradientClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		[Newtonsoft.Json.JsonIgnore, Browsable(false)]
+		internal string DebuggerDisplay
+		{
+			get { return $"Begin={Begin.DebuggerDisplay}, Middle={Middle.DebuggerDisplay}, End={End.DebuggerDisplay}"; }
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "begin")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Begin")]
+		public ColorClass Begin { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "middle")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Middle")]
+		public ColorClass Middle { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "end")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("End")]
+		public ColorClass End { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	[DisplayName("")]
+	public class DocumentGradientClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "dock-strip-gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		[DisplayName("")]
+		public StartEndGradientClass DocStripGradient { get => Get(new StartEndGradientClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "active-tab-gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		[DisplayName("")]
+		public TabGradientClass ActiveTabGradient { get => Get(new TabGradientClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "inactive-tab-gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		[DisplayName("")]
+		public TabGradientClass InactiveTabGradient { get => Get(new TabGradientClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	[DisplayName("")]
+	public class ToolWindowClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "active-caption-gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		[DisplayName("")]
+		public TabGradientClass ActiveCaptionGradient { get => Get(new TabGradientClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "inactive-caption-gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		[DisplayName("")]
+		public TabGradientClass InactiveCaptionGradient { get => Get(new TabGradientClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "active-tab-gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		[DisplayName("")]
+		public TabGradientClass ActiveTabGradient { get => Get(new TabGradientClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "inactive-tab-gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		[DisplayName("")]
+		public TabGradientClass InactiveTabGradient { get => Get(new TabGradientClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "dock-strip-gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		[DisplayName("")]
+		public StartEndGradientClass DocStripGradient { get => Get(new StartEndGradientClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	[DisplayName("")]
+	public class DockPaneClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "document-gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public DocumentGradientClass DocumentGradient { get => Get(new DocumentGradientClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "tool-window")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ToolWindowClass ToolWindow { get => Get(new ToolWindowClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class SelectedClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "gradient")]
+		[DisplayName("Gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BeginEndGradientClass Gradient { get => Get(new BeginEndGradientClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class SingleGradientClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "gradient")]
+		[DisplayName("Gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BeginMiddleEndGradientClass Gradient { get => Get(new BeginMiddleEndGradientClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class ItemClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Border")]
+		public ColorClass Border { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "selected")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Selected")]
+		public ColorClass Selected { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class CheckClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Border")]
+		public ColorClass Border { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "selected")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Selected")]
+		public ColorClass Selected { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "pressed")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Pressed")]
+		public ColorClass Pressed { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class MainMenuClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Border")]
+		public ColorClass Border { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background-dropdown")]
+		[DisplayName("Background-Dropdown")]
+		public ColorClass BackgroundDropdown { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "separator")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Separator")]
+		public ColorClass Separator { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "selected")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public SelectedClass Selected { get => Get(new SelectedClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "pressed")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public SingleGradientClass Pressed { get => Get(new SingleGradientClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "item")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ItemClass Item { get => Get(new ItemClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "check")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public CheckClass Check { get => Get(new CheckClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "margin")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public SingleGradientClass Margin { get => Get(new SingleGradientClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class GripClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "light")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public ColorClass Light { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "dark")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public ColorClass Dark { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class ToolbarClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public ColorClass Border { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "separator")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public ColorClass Separator { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "selected-gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BeginEndGradientClass SelectedGradient { get => Get(new BeginEndGradientClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "overflow-gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BeginMiddleEndGradientClass OverflowGradient { get => Get(new BeginMiddleEndGradientClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "gradient")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BeginMiddleEndGradientClass Gradient { get => Get(new BeginMiddleEndGradientClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "grip")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public GripClass Grip { get => Get(new GripClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class BackgroundClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class WelcomeClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "panel1")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Panel1 { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "panel2")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Panel2 { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "pnlTipOfTheDay")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass PnlTipOfTheDay { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "pnlRight")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass PnlRight { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class BackgroundForegroundClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class BackgroundLineClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "line")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Line")]
+		public ColorClass Line { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class BackgroundForegroundLineClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "line")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Line")]
+		public ColorClass Line { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class BackgroundForegroundBorderClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+	[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Border")]
+		public ColorClass Border { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+	#region INotifyPropertyChanged - New
+
+	private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class BackgroundForegroundFlatClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "flat")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public FlatClass Flat { get => Get(new FlatClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class BackgroundForegroundBoxClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "box")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Box { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class ProjectPanelClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "project-tree")]
+		[DisplayName("ProjectTree")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundLineClass ProjectTree { get => Get(new BackgroundForegroundLineClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class ComboboxClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "drop-down")]
+		[DisplayName("DropDown")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass DropDown { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "drop-down-closed")]
+		[DisplayName("DropDown Closed")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass DropDownClosed { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "item-selected")]
+		[DisplayName("Item selected")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass ItemSelected { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "item-not-selected")]
+		[DisplayName("Item not selected")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass ItemNotSelected { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
+		[DisplayName("Border")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundClass Border { get => Get(new BackgroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "button-dropped-down")]
+		[DisplayName("Button dropped down")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass ButtonDroppedDown { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "button-not-dropped-down")]
+		[DisplayName("Button not dropped down")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass ButtonNotDroppedDown { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class PropertiesPanelClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "combobox")]
+		[DisplayName("ComboBox")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ComboboxClass Combobox { get => Get(new ComboboxClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "grid")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public GridClass Grid { get => Get(new GridClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class GridClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "line")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Line")]
+		public ColorClass Line { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "category")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Category")]
+		public ColorClass Category { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "view")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass View { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "help")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Help { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class OutputPanelClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "owner-draw")]
+		public bool OwnerDraw { get => Get(false); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "grid-lines")]
+		public bool GridLines { get => Get(false); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "last-column-width")]
+		[DisplayName("Last column width")]
+		public int LastColumnWidth { get => Get(1); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "draw-item")]
+		[DisplayName("Draw item")]
+		public bool DrawItem { get => Get(false); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "draw-sub-item")]
+		[DisplayName("Draw sub item")]
+		public bool DrawSubItem { get => Get(false); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "column-header")]
+		[DisplayName("Column header")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundBorderClass ColumnHeader { get => Get(new BackgroundForegroundBorderClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class PropertyGridClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "line")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Line")]
+		public ColorClass Line { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "category-fore")]
+		[DisplayName("Category fore")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public ColorClass CategoryFore { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "view")]
+		[DisplayName("View")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public BackgroundForegroundClass View { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "help")]
+		[DisplayName("Help")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public BackgroundForegroundClass Help { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class GeneralSettingsClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "property-grid")]
+		[DisplayName("Property grid")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public PropertyGridClass PropertyGrid { get => Get(new PropertyGridClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class ColorNumberBoxClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "border-style")]
+		[DisplayName("Border style")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public int BorderStyle { get => Get(1); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class BorderClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "size")]
+		[DisplayName("Size")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public int Size { get => Get(1); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "color")]
+		[DisplayName("Color")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ColorClass Color { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class FlatClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "style")]
+		[DisplayName("Style")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public int Style { get => Get(1); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
+		[DisplayName("Border")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BorderClass Border { get => Get(new BorderClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class BtnColorDialogClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "flat")]
+		[DisplayName("Flat")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public FlatClass Flat { get => Get(new FlatClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class ColorFinderClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "group-box")]
+		[DisplayName("Group box")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass GroupBox { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "color-number-box")]
+		[DisplayName("Color number box")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ColorNumberBoxClass ColorNumberBox { get => Get(new ColorNumberBoxClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-color-dialog")]
+		[DisplayName("Button color Dialog")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BtnColorDialogClass BtnColorDialog { get => Get(new BtnColorDialogClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class PalettePageClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "group-box")]
+		[DisplayName("Group box")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass GroupBox { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class SelectedColorClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "selected")]
+		[DisplayName("Selected")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public ColorClass Selected { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "not-selected")]
+		[DisplayName("Not selected")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public ColorClass NotSelected { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class DrawItemClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[DisplayName("Background")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public SelectedColorClass Background { get => Get(new SelectedColorClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[DisplayName("Foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class PaletteClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "color-finder")]
+		[DisplayName("Color finder")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ColorFinderClass ColorFinder { get => Get(new ColorFinderClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "palette-page")]
+		[DisplayName("Palette")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public PalettePageClass PalettePage { get => Get(new PalettePageClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "draw-mode")]
+		[DisplayName("Draw mode")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public int DrawMode { get => Get(1); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "draw-item")]
+		[DisplayName("Draw item")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public DrawItemClass DrawItem { get => Get(new DrawItemClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class SpriteSelectorClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "list")]
+		[DisplayName("List")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass List { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "tree")]
+		[DisplayName("Tree")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundLineClass Tree { get => Get(new BackgroundForegroundLineClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class TextParserEditorClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "box")]
+		[DisplayName("Box")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Box { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "list-view")]
+		[DisplayName("ListView")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ListViewClass ListView { get => Get(new ListViewClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class ListViewClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "owner-draw")]
+		[DisplayName("Owner Draw")]
+		public bool OwnerDraw { get => Get(false); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "grid-lines")]
+		[DisplayName("Grid lines")]
+		public bool GridLines { get => Get(false); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "last-column-width")]
+		[DisplayName("Last column width")]
+		public int LastColumnWidth { get => Get(1); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "draw-item")]
+		[DisplayName("Draw item")]
+		public bool DrawItem { get => Get(false); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "draw-sub-item")]
+		[DisplayName("Draw sub item")]
+		public bool DrawSubItem { get => Get(false); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "column-header")]
+		[DisplayName("Column Header")]
+		public BackgroundForegroundBorderClass ColumnHeader { get => Get(new BackgroundForegroundBorderClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class TextBoxClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "border-style")]
+		[DisplayName("Border style")]
+		public int BorderStyle { get => Get(1); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class LipSyncEditorClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "text-boxes")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public TextBoxClass TextBox { get => Get(new TextBoxClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class InventoryEditorClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "current-item-box")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass CurrentItemBox { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "left-box")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass LeftBox { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "right-box")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass RightBox { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class DialogEditorClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-delete-option")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundFlatClass ButtonDeleteOption { get => Get(new BackgroundForegroundFlatClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-new-option")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundFlatClass ButtonNewOption { get => Get(new BackgroundForegroundFlatClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class ViewEditorClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-delete-option")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundFlatClass ButtonDeleteOption { get => Get(new BackgroundForegroundFlatClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-new-option")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundFlatClass ButtonNewOption { get => Get(new BackgroundForegroundFlatClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-new-frame")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundFlatClass ButtonNewFrame { get => Get(new BackgroundForegroundFlatClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class CharacterEditorClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "box")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Box { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-make")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundFlatClass ButtonMake { get => Get(new BackgroundForegroundFlatClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class ViewPreviewClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "numeric-loop")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass NumericLoop { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "numeric-frame")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass NumericFrame { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "numeric-delay")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass NumericDelay { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class FontEditorClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "box")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Box { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-import")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundFlatClass ButtonImport { get => Get(new BackgroundForegroundFlatClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class AudioEditorClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "audio-type")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass AudioType { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "audio-clip-box")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass AudioClipBox { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-play")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundFlatClass ButtonPlay { get => Get(new BackgroundForegroundFlatClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-pause")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundFlatClass ButtonPause { get => Get(new BackgroundForegroundFlatClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-stop")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundFlatClass ButtonStop { get => Get(new BackgroundForegroundFlatClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class GlobalVariablesEditorClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "box")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Box { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "list")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ListViewClass List { get => Get(new ListViewClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class RoomEditorClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "box")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Box { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "buffered-panel")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass BufferedPanel { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-change-image")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundFlatClass ButtonChangeImage { get => Get(new BackgroundForegroundFlatClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-delete")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundFlatClass ButtonDelete { get => Get(new BackgroundForegroundFlatClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-export")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundFlatClass ButtonExport { get => Get(new BackgroundForegroundFlatClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "combo-view-type")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ComboboxClass ComboViewType { get => Get(new ComboboxClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "combo-backgrounds")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ComboboxClass ComboBackgrounds { get => Get(new ComboboxClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class TextEditorClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "global-default")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass GlobalDefault { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "default")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Default { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "word-1")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Word1 { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "word-2")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Word2 { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "identifier")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Identifier { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "comment")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Comment { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "comment-line")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass CommentLine { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "comment-doc")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass CommentDoc { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "comment-line-doc")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass CommentLineDoc { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "comment-doc-keyword")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass CommentDocKeyword { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "comment-doc-keyword-error")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass CommentDocKeywordError { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "number")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Number { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "regex")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Regex { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "string")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass String { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "string-eol")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass StringEOL { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "operator")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Operator { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "preprocessor")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass Preprocessor { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "line-number")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass LineNumber { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "indent-guide")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass IndentGuide { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "fold-margin")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ColorClass FoldMargin { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "fold-margin-hi")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ColorClass FoldMarginHi { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "marknum-folder")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass MarknumFolder { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "marknum-folder-end")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass MarknumFolderEnd { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "marknum-folder-open")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass MarknumFolderOpen { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "marknum-folder-open-mid")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass MarknumFolderOpenMid { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "marknum-folder-mid-tail")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ColorClass MarknumFolderMidTail { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "marknum-folder-sub")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ColorClass MarknumFolderSub { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "marknum-folder-tail")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ColorClass MarknumFolderTail { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "selected")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ColorClass Selected { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "caret")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ColorClass Caret { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class ScriptEditorClass : INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString() { return ""; }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Foreground")]
+		public ColorClass Foreground { get => Get(DEFINE.COLORNORMAL); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "combo-functions")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ComboboxClass ComboFunctions { get => Get(new ComboboxClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "text-editor")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public TextEditorClass TextEditor { get => Get(new TextEditorClass()); set { Notify(value); } }
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
+
+		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+		{
+			System.ComponentModel.PropertyChangedEventHandler handler = PropertyChanged;
+
+			if ( handler != null )
+			{
+				if ( MainForm == null )
+				{
+					if ( System.Windows.Forms.Application.OpenForms.Count > 0 )
+					{
+						MainForm = System.Windows.Forms.Application.OpenForms[0];
+					}
+				}
+
+				if ( MainForm != null )
+				{
+					if ( MainForm.InvokeRequired )
+					{
+						// We are not in UI Thread now
+						MainForm.Invoke(handler, new object[] { this, new System.ComponentModel.PropertyChangedEventArgs(propertyName) });
+					}
+					else
+					{
+						handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+					}
+				}
+			}
+		}
+
+		#endregion INotifyPropertyChanged - New
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+	}
+
+	public class FileContent: INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
+	{
+		public override string ToString()
+		{
+			return "";
+		}
+
+		#region Properties
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "name")]
+		public string Name { get => Get(""); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "version")]
+		public string Version { get => Get(""); set => Notify(value); }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
+		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
+		[DisplayName("Background")]
+		public ColorClass Background { get => Get(DEFINE.COLORNORMAL); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "main-container")]
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public MainContainerClass MainContainer { get => Get(new MainContainerClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "main-menu")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public MainMenuClass MainMenu { get => Get(new MainMenuClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "tool-bar")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ToolbarClass Toolbar { get => Get(new ToolbarClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "status-strip")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundClass StatusStrip { get => Get(new BackgroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "welcome")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public WelcomeClass Welcome { get => Get(new WelcomeClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "project-panel")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ProjectPanelClass ProjectPanel { get => Get(new ProjectPanelClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "properties-panel")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public PropertiesPanelClass PropertiesPanel { get => Get(new PropertiesPanelClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "output-panel")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public OutputPanelClass OutputPanel { get => Get(new OutputPanelClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "find-results-panel")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public OutputPanelClass FindResultsPanel { get => Get(new OutputPanelClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "call-stack-panel")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public OutputPanelClass CallStackPanel { get => Get(new OutputPanelClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "general-settings")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public GeneralSettingsClass GeneralSettings { get => Get(new GeneralSettingsClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "palette")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public PaletteClass Palette { get => Get(new PaletteClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "sprite-selector")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public SpriteSelectorClass SpriteSelector { get => Get(new SpriteSelectorClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "text-parser-editor")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public TextParserEditorClass TextParserEditor { get => Get(new TextParserEditorClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "lip-sync-editor")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public LipSyncEditorClass LipSyncEditor { get => Get(new LipSyncEditorClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "gui-editor")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundClass GuiEditor { get => Get(new BackgroundForegroundClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "inventory-editor")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public InventoryEditorClass InventoryEditor { get => Get(new InventoryEditorClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "dialog-editor")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public DialogEditorClass DialogEditor { get => Get(new DialogEditorClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "view-editor")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ViewEditorClass ViewEditor { get => Get(new ViewEditorClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "character-editor")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public CharacterEditorClass CharacterEditor { get => Get(new CharacterEditorClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "view-preview")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ViewPreviewClass ViewPreview { get => Get(new ViewPreviewClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "cursor-editor")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public BackgroundForegroundBoxClass CursorEditor { get => Get(new BackgroundForegroundBoxClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "font-editor")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public FontEditorClass FontEditor { get => Get(new FontEditorClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "audio-editor")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public AudioEditorClass AudioEditor { get => Get(new AudioEditorClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "global-variables-editor")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public GlobalVariablesEditorClass GlobalVariablesEditor { get => Get(new GlobalVariablesEditorClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "room-editor")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public RoomEditorClass RoomEditor { get => Get(new RoomEditorClass()); set { Notify(value); } }
+
+		[Newtonsoft.Json.JsonProperty(PropertyName = "script-editor")]
+		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
+		[TypeConverter(typeof(ExpandableObjectConverter))]
+		public ScriptEditorClass ScriptEditor { get => Get(new ScriptEditorClass()); set { Notify(value); } }
+
+		#endregion Properties
+
+		#region IBindableComponent Members
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.BindingContext bindingContext;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+		private System.Windows.Forms.ControlBindingsCollection dataBindings;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.BindingContext BindingContext
+		{
+			get
+			{
+				if ( bindingContext == null )
+				{
+					bindingContext = new System.Windows.Forms.BindingContext();
+				}
+				return bindingContext;
+			}
+			set
+			{
+				bindingContext = value;
+			}
+		}
+
+		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.Windows.Forms.ControlBindingsCollection DataBindings
+		{
+			get
+			{
+				if ( dataBindings == null )
+				{
+					dataBindings = new System.Windows.Forms.ControlBindingsCollection(this);
+				}
+				return dataBindings;
+			}
+		}
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), Browsable(false)] public System.ComponentModel.ISite Site
+		{
+			get { return null; }
+			set { }
+
+		}
+
+		public event EventHandler Disposed;
+
+		public void Dispose()
+		{
+			Disposed?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+
+		#region INotifyPropertyChanged - New
+
+		private System.Collections.Generic.Dictionary<string, object> _properties = new System.Collections.Generic.Dictionary<string, object>();
+
+		/// <summary>Gets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected T Get<T>(T defaultvalue, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object value) )
+			{
+				if ( value == null )
+				{
+					_properties.Add(name, defaultvalue);
+				}
+
+				return value == null ? defaultvalue : (T)value;
+			}
+			else
+			{
+				_properties.Add(name, defaultvalue);
+			}
+
+			return defaultvalue;
+		}
+
+		/// <summary>Sets the value of a property</summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <remarks>Use this overload when implicitly naming the property</remarks>
+		protected bool Notify<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+		{
+			System.Diagnostics.Debug.Assert(name != null, "name != null");
+
+			if ( _properties.TryGetValue(name, out object o) )
+			{
+				if ( Equals(value, Get<T>(default(T), name)) )
+				{
+					return false;
+				}
+
+				_properties[name] = value;
+			}
+			else
+			{
+				_properties.Add(name, value);
+			}
+
+			OnPropertyChanged(name);
+
+			return true;
+		}
+
+		public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)] private System.Windows.Forms.Form MainForm = null;
 
 		protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
 		{
@@ -610,1370 +10495,26 @@ namespace FileReader
 		#endregion INotifyPropertyChanged - New
 	}
 
-	[System.Diagnostics.DebuggerDisplay("{DebuggerDisplay,nq}")]
-	[DisplayName("")]
-	public class StartEndGradientClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
-		[Newtonsoft.Json.JsonIgnore, Browsable(false)]
-		public string DebuggerDisplay
-		{
-			get { return $"Start={Start.DebuggerDisplay}, End={End.DebuggerDisplay}"; }
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "start")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Start")]
-		public ColorClass Start { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "end")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("End")]
-		public ColorClass End { get; set; }
-	}
-
-	[System.Diagnostics.DebuggerDisplay("{DebuggerDisplay,nq}")]
-	[DisplayName("")]
-	public class BeginEndGradientClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
-		[Newtonsoft.Json.JsonIgnore, Browsable(false)]
-		public string DebuggerDisplay
-		{
-			get { return $"Begin={Begin.DebuggerDisplay}, End={End.DebuggerDisplay}"; }
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "begin")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Begin")]
-		public ColorClass Begin { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "end")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("End")]
-		public ColorClass End { get; set; }
-	}
-
-	[System.Diagnostics.DebuggerDisplay("{DebuggerDisplay,nq}")]
-	[DisplayName("")]
-	public class BeginMiddleEndGradientClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
-		[Newtonsoft.Json.JsonIgnore, Browsable(false)]
-		public string DebuggerDisplay
-		{
-			get { return $"Begin={Begin.DebuggerDisplay}, Middle={Middle.DebuggerDisplay}, End={End.DebuggerDisplay}"; }
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "begin")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Begin")]
-		public ColorClass Begin { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "middle")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Middle")]
-		public ColorClass Middle { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "end")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("End")]
-		public ColorClass End { get; set; }
-	}
-
-	[DisplayName("")]
-	public class DocumentGradientClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "dock-strip-gradient")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		[DisplayName("")]
-		public StartEndGradientClass DocStripGradient { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "active-tab-gradient")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		[DisplayName("")]
-		public TabGradientClass ActiveTabGradient { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "inactive-tab-gradient")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		[DisplayName("")]
-		public TabGradientClass InactiveTabGradient { get; set; }
-	}
-
-	[DisplayName("")]
-	public class ToolWindowClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "active-caption-gradient")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		[DisplayName("")]
-		public TabGradientClass ActiveCaptionGradient { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "inactive-caption-gradient")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		[DisplayName("")]
-		public TabGradientClass InactiveCaptionGradient { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "active-tab-gradient")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		[DisplayName("")]
-		public TabGradientClass ActiveTabGradient { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "inactive-tab-gradient")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		[DisplayName("")]
-		public TabGradientClass InactiveTabGradient { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "dock-strip-gradient")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		[DisplayName("")]
-		public StartEndGradientClass DocStripGradient { get; set; }
-	}
-
-	[DisplayName("")]
-	public class DockPaneClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "document-gradient")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public DocumentGradientClass DocumentGradient { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "tool-window")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ToolWindowClass ToolWindow { get; set; }
-	}
-
-	public class MainMenuClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Background")]
-		public ColorClass Background { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Foreground")]
-		public ColorClass Foreground { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Border")]
-		public ColorClass Border { get; set; }
-
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[Newtonsoft.Json.JsonProperty(PropertyName = "background-dropdown")]
-		[DisplayName("Background-Dropdown")]
-		public ColorClass BackgroundDropdown { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "separator")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Separator")]
-		public ColorClass Separator { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "selected")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public SelectedClass Selected { get; set; }
-
-		public class SelectedClass
-		{
-			public override string ToString()
-			{
-				return "";
-			}
-
-			[Newtonsoft.Json.JsonProperty(PropertyName = "gradient")]
-			[DisplayName("Gradient")]
-			[TypeConverter(typeof(ExpandableObjectConverter))]
-			public BeginEndGradientClass Gradient { get; set; }
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "pressed")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public SingleGradientClass Pressed { get; set; }
-
-		public class SingleGradientClass
-		{
-			public override string ToString()
-			{
-				return "";
-			}
-
-			[Newtonsoft.Json.JsonProperty(PropertyName = "gradient")]
-			[DisplayName("Gradient")]
-			[TypeConverter(typeof(ExpandableObjectConverter))]
-			public BeginMiddleEndGradientClass Gradient { get; set; }
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "item")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ItemClass Item { get; set; }
-
-		public class ItemClass
-		{
-			public override string ToString()
-			{
-				return "";
-			}
-
-			[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
-			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-			[DisplayName("Border")]
-			public ColorClass Border { get; set; }
-
-			[Newtonsoft.Json.JsonProperty(PropertyName = "selected")]
-			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-			[DisplayName("Selected")]
-			public ColorClass Selected { get; set; }
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "check")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public CheckClass Check { get; set; }
-
-		public class CheckClass
-		{
-			public override string ToString()
-			{
-				return "";
-			}
-
-			[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
-			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-			[DisplayName("Background")]
-			public ColorClass Background { get; set; }
-
-			[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
-			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-			[DisplayName("Foreground")]
-			public ColorClass Foreground { get; set; }
-
-			[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
-			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-			[DisplayName("Border")]
-			public ColorClass Border { get; set; }
-
-			[Newtonsoft.Json.JsonProperty(PropertyName = "selected")]
-			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-			[DisplayName("Selected")]
-			public ColorClass Selected { get; set; }
-
-			[Newtonsoft.Json.JsonProperty(PropertyName = "pressed")]
-			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-			[DisplayName("Pressed")]
-			public ColorClass Pressed { get; set; }
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "margin")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public SingleGradientClass Margin { get; set; }
-	}
-
-	public class ToolbarClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		public ColorClass Background { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		public ColorClass Border { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "separator")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		public ColorClass Separator { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "selected-gradient")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BeginEndGradientClass SelectedGradient { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "overflow-gradient")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BeginMiddleEndGradientClass OverflowGradient { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "gradient")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BeginMiddleEndGradientClass Gradient { get; set; }
-
-		public class GripClass
-		{
-			public override string ToString()
-			{
-				return "";
-			}
-
-			[Newtonsoft.Json.JsonProperty(PropertyName = "light")]
-			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-			public ColorClass Light { get; set; }
-
-			[Newtonsoft.Json.JsonProperty(PropertyName = "dark")]
-			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-			public ColorClass Dark { get; set; }
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "grip")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public GripClass Grip { get; set; }
-	}
-
-	public class BackgroundClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Background")]
-		public ColorClass Background { get; set; }
-	}
-
-	public class WelcomeClass : BackgroundForegroundClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "panel1")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass Panel1 { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "panel2")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass Panel2 { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "pnlTipOfTheDay")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass PnlTipOfTheDay { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "pnlRight")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass PnlRight { get; set; }
-	}
-
-	public class BackgroundForegroundClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Background")]
-		public ColorClass Background { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Foreground")]
-		public ColorClass Foreground { get; set; }
-	}
-
-	public class BackgroundLineClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Background")]
-		public ColorClass Background { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "line")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Line")]
-		public ColorClass Line { get; set; }
-	}
-
-	public class BackgroundForegroundLineClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Background")]
-		public ColorClass Background { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Foreground")]
-		public ColorClass Foreground { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "line")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Line")]
-		public ColorClass Line { get; set; }
-	}
-
-	public class BackgroundForegroundBorderClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Background")]
-		public ColorClass Background { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Foreground")]
-		public ColorClass Foreground { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Border")]
-		public ColorClass Border { get; set; }
-	}
-
-	public class BackgroundForegroundFlatClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "flat")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public FlatClass Flat { get; set; }
-	}
-
-	public class BackgroundForegroundBoxClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "box")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass Box { get; set; }
-	}
-
-	public class ProjectPanelClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Background")]
-		public ColorClass Background { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "project-tree")]
-		[DisplayName("ProjectTree")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundLineClass ProjectTree { get; set; }
-	}
-
-	public class ComboboxClass : BackgroundForegroundClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "drop-down")]
-		[DisplayName("DropDown")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass DropDown { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "drop-down-closed")]
-		[DisplayName("DropDown Closed")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass DropDownClosed { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "item-selected")]
-		[DisplayName("Item selected")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass ItemSelected { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "item-not-selected")]
-		[DisplayName("Item not selected")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass ItemNotSelected { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
-		[DisplayName("Border")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundClass Border { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "button-dropped-down")]
-		[DisplayName("Button dropped down")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass ButtonDroppedDown { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "button-not-dropped-down")]
-		[DisplayName("Button not dropped down")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass ButtonNotDroppedDown { get; set; }
-	}
-
-	public class PropertiesPanelClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Background")]
-		public ColorClass Background { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "combobox")]
-		[DisplayName("ComboBox")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ComboboxClass Combobox { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "grid")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public GridClass Grid { get; set; }
-	}
-
-	public class GridClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Background")]
-		public ColorClass Background { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "line")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Line")]
-		public ColorClass Line { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "category")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Category")]
-		public ColorClass Category { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "view")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass View { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "help")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass Help { get; set; }
-	}
-
-	public class OutputPanelClass : BackgroundForegroundClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "owner-draw")]
-		public bool OwnerDraw { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "grid-lines")]
-		public bool GridLines { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "last-column-width")]
-		[DisplayName("Last column width")]
-		public int LastColumnWidth { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "draw-item")]
-		[DisplayName("Draw item")]
-		public bool DrawItem { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "draw-sub-item")]
-		[DisplayName("Draw sub item")]
-		public bool DrawSubItem { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "column-header")]
-		[DisplayName("Column header")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundBorderClass ColumnHeader { get; set; }
-	}
-
-	public class PropertyGridClass : BackgroundLineClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "category-fore")]
-		[DisplayName("Category fore")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		public ColorClass CategoryFore { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "view")]
-		[DisplayName("View")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		public BackgroundForegroundClass View { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "help")]
-		[DisplayName("Help")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		public BackgroundForegroundClass Help { get; set; }
-	}
-
-	public class GeneralSettingsClass : BackgroundForegroundClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "property-grid")]
-		[DisplayName("Property grid")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public PropertyGridClass PropertyGrid { get; set; }
-	}
-
-	public class ColorNumberBoxClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "border-style")]
-		[DisplayName("Border style")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public int BorderStyle { get; set; }
-	}
-
-	public class BorderClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "size")]
-		[DisplayName("Size")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public int Size { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "color")]
-		[DisplayName("Color")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ColorClass Color { get; set; }
-	}
-
-	public class FlatClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "style")]
-		[DisplayName("Style")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public int Style { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "border")]
-		[DisplayName("Border")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BorderClass Border { get; set; }
-	}
-
-	public class BtnColorDialogClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "flat")]
-		[DisplayName("Flat")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public FlatClass Flat { get; set; }
-	}
-
-	public class ColorFinderClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "group-box")]
-		[DisplayName("Group box")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass GroupBox { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "color-number-box")]
-		[DisplayName("Color number box")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ColorNumberBoxClass ColorNumberBox { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-color-dialog")]
-		[DisplayName("Button color Dialog")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BtnColorDialogClass BtnColorDialog { get; set; }
-	}
-
-	public class PalettePageClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "group-box")]
-		[DisplayName("Group box")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass GroupBox { get; set; }
-	}
-
-	public class DrawItemClass
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
-		[DisplayName("Background")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public SelectedColorClass Background { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "foreground")]
-		[DisplayName("Foreground")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		public ColorClass Foreground { get; set; }
-
-		public class SelectedColorClass
-		{
-			public override string ToString()
-			{
-				return "";
-			}
-
-			[Newtonsoft.Json.JsonProperty(PropertyName = "selected")]
-			[DisplayName("Selected")]
-			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-			public ColorClass Selected { get; set; }
-
-			[Newtonsoft.Json.JsonProperty(PropertyName = "not-selected")]
-			[DisplayName("Not selected")]
-			[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-			public ColorClass NotSelected { get; set; }
-		}
-	}
-
-	public class PaletteClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "color-finder")]
-		[DisplayName("Color finder")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ColorFinderClass ColorFinder { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "palette-page")]
-		[DisplayName("Palette")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public PalettePageClass PalettePage { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "draw-mode")]
-		[DisplayName("Draw mode")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public int DrawMode { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "draw-item")]
-		[DisplayName("Draw item")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public DrawItemClass DrawItem { get; set; }
-	}
-
-	public class SpriteSelectorClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "list")]
-		[DisplayName("List")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass List { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "tree")]
-		[DisplayName("Tree")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundLineClass Tree { get; set; }
-	}
-
-	public class TextParserEditorClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "box")]
-		[DisplayName("Box")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass Box { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "list-view")]
-		[DisplayName("ListView")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ListViewClass ListView { get; set; }
-	}
-
-	public class ListViewClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "owner-draw")]
-		[DisplayName("Owner Draw")]
-		public bool OwnerDraw { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "grid-lines")]
-		[DisplayName("Grid lines")]
-		public bool GridLines { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "last-column-width")]
-		[DisplayName("Last column width")]
-		public int LastColumnWidth { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "draw-item")]
-		[DisplayName("Draw item")]
-		public bool DrawItem { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "draw-sub-item")]
-		[DisplayName("Draw sub item")]
-		public bool DrawSubItem { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "column-header")]
-		[DisplayName("Column Header")]
-		public BackgroundForegroundBorderClass ColumnHeader { get; set; }
-	}
-
-	public class TextBoxClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "border-style")]
-		[DisplayName("Border style")]
-		public int BorderStyle { get; set; }
-	}
-
-	public class LipSyncEditorClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "text-boxes")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public TextBoxClass TextBox { get; set; }
-	}
-
-	public class InventoryEditorClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "current-item-box")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass CurrentItemBox { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "left-box")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass LeftBox { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "right-box")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass RightBox { get; set; }
-	}
-
-	public class DialogEditorClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-delete-option")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundFlatClass ButtonDeleteOption { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-new-option")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundFlatClass ButtonNewOption { get; set; }
-	}
-
-	public class ViewEditorClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-delete-option")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundFlatClass ButtonDeleteOption { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-new-option")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundFlatClass ButtonNewOption { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-new-frame")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundFlatClass ButtonNewFrame { get; set; }
-	}
-
-	public class CharacterEditorClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "box")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass Box { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-make")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundFlatClass ButtonMake { get; set; }
-	}
-
-	public class ViewPreviewClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "numeric-loop")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass NumericLoop { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "numeric-frame")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass NumericFrame { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "numeric-delay")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass NumericDelay { get; set; }
-	}
-
-	public class FontEditorClass : BackgroundForegroundBoxClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-import")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundFlatClass ButtonImport { get; set; }
-	}
-
-	public class AudioEditorClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "audio-type")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass AudioType { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "audio-clip-box")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass AudioClipBox { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-play")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundFlatClass ButtonPlay { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-pause")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundFlatClass ButtonPause { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-stop")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundFlatClass ButtonStop { get; set; }
-	}
-
-	public class GlobalVariablesEditorClass : BackgroundForegroundBoxClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "list")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ListViewClass List { get; set; }
-	}
-
-	public class RoomEditorClass : BackgroundForegroundBoxClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "buffered-panel")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass BufferedPanel { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-change-image")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundFlatClass ButtonChangeImage { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-delete")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundFlatClass ButtonDelete { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "btn-export")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundFlatClass ButtonExport { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "combo-view-type")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ComboboxClass ComboViewType { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "combo-backgrounds")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ComboboxClass ComboBackgrounds { get; set; }
-	}
-
-	public class TextEditorClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "global-default")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass GlobalDefault { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "default")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass Default { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "word-1")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass Word1 { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "word-2")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass Word2 { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "identifier")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass Identifier { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "comment")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass Comment { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "comment-line")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass CommentLine { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "comment-doc")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass CommentDoc { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "comment-line-doc")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass CommentLineDoc { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "comment-doc-keyword")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass CommentDocKeyword { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "comment-doc-keyword-error")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass CommentDocKeywordError { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "number")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass Number { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "regex")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass Regex { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "string")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass String { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "string-eol")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass StringEOL { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "operator")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass Operator { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "preprocessor")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass Preprocessor { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "line-number")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass LineNumber { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "indent-guide")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass IndentGuide { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "fold-margin")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ColorClass FoldMargin { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "fold-margin-hi")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ColorClass FoldMarginHi { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "marknum-folder")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass MarknumFolder { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "marknum-folder-end")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass MarknumFolderEnd { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "marknum-folder-open")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass MarknumFolderOpen { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "marknum-folder-open-mid")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass MarknumFolderOpenMid { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "marknum-folder-mid-tail")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ColorClass MarknumFolderMidTail { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "marknum-folder-sub")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ColorClass MarknumFolderSub { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "marknum-folder-tail")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ColorClass MarknumFolderTail { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "selected")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ColorClass Selected { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "caret")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ColorClass Caret { get; set; }
-	}
-
-	public class ScriptEditorClass : BackgroundForegroundClass
-	{
-		[Newtonsoft.Json.JsonProperty(PropertyName = "combo-functions")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ComboboxClass ComboFunctions { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "text-editor")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public TextEditorClass TextEditor { get; set; }
-	}
-
-	public class FileContent
-	{
-		public override string ToString()
-		{
-			return "";
-		}
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "name")]
-		public string Name { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "version")]
-		public string Version { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "background")]
-		[Editor(typeof(MyColorEditor), typeof(UITypeEditor))] // specify editor for the property
-		[DisplayName("Background")]
-		public ColorClass Background { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "main-container")]
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public MainContainerClass MainContainer { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "main-menu")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public MainMenuClass MainMenu { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "tool-bar")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ToolbarClass Toolbar { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "status-strip")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundClass StatusStrip { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "welcome")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public WelcomeClass Welcome { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "project-panel")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ProjectPanelClass ProjectPanel { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "properties-panel")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public PropertiesPanelClass PropertiesPanel { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "output-panel")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public OutputPanelClass OutputPanel { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "find-results-panel")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public OutputPanelClass FindResultsPanel { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "call-stack-panel")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public OutputPanelClass CallStackPanel { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "general-settings")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public GeneralSettingsClass GeneralSettings { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "palette")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public PaletteClass Palette { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "sprite-selector")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public SpriteSelectorClass SpriteSelector { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "text-parser-editor")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public TextParserEditorClass TextParserEditor { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "lip-sync-editor")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public LipSyncEditorClass LipSyncEditor { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "gui-editor")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundClass GuiEditor { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "inventory-editor")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public InventoryEditorClass InventoryEditor { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "dialog-editor")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public DialogEditorClass DialogEditor { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "view-editor")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ViewEditorClass ViewEditor { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "character-editor")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public CharacterEditorClass CharacterEditor { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "view-preview")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ViewPreviewClass ViewPreview { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "cursor-editor")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public BackgroundForegroundBoxClass CursorEditor { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "font-editor")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public FontEditorClass FontEditor { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "audio-editor")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public AudioEditorClass AudioEditor { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "global-variables-editor")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public GlobalVariablesEditorClass GlobalVariablesEditor { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "room-editor")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public RoomEditorClass RoomEditor { get; set; }
-
-		[Newtonsoft.Json.JsonProperty(PropertyName = "script-editor")]
-		[Editor(typeof(EmptyEditor), typeof(UITypeEditor))] // specify editor for the property
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public ScriptEditorClass ScriptEditor { get; set; }
-	}
-
 	public class File
 	{
-		public static string tempcontent = string.Empty;
-
-		public FileContent Content { get; internal set; }
+		public FileContent Content { get; internal set; } = new FileContent();
+		public string ControlString { get; internal set; } = string.Empty;
 
 		public bool Load(string fileName)
 		{
 			bool returnValue = false;
 
-			if ( !System.IO.File.Exists(fileName) )
+			if ( System.IO.File.Exists(fileName) )
 			{
-			}
-			else
-			{
-				string datastring;
-
 				using ( System.IO.FileStream stream = System.IO.File.Open(fileName, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite) )
 				{
 					byte[] dataarray = new byte[stream.Length];
 					stream.Read(dataarray, 0, (int)stream.Length);
 
-					datastring = System.Text.Encoding.ASCII.GetString(dataarray);
+					ControlString = System.Text.Encoding.ASCII.GetString(dataarray);
 				}
 
-				Content = Newtonsoft.Json.JsonConvert.DeserializeObject<FileContent>(datastring);
-				tempcontent = datastring;
+				Content = Newtonsoft.Json.JsonConvert.DeserializeObject<FileContent>(ControlString);
 
 				returnValue = true;
 			}
@@ -1985,62 +10526,100 @@ namespace FileReader
 		{
 			using ( System.IO.FileStream filestream = System.IO.File.Open(filePath, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.Read) )
 			{
-				//var settings = new Newtonsoft.Json.JsonSerializerSettings { ContractResolver = BaseFirstContractResolver.Instance };
-				//string json = Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented, settings);
-				string json = Newtonsoft.Json.JsonConvert.SerializeObject(this.Content, Newtonsoft.Json.Formatting.Indented);
+				ControlString = Newtonsoft.Json.JsonConvert.SerializeObject(this.Content, Newtonsoft.Json.Formatting.Indented);
 
 				using ( System.IO.StreamWriter sw = new System.IO.StreamWriter(filestream, System.Text.Encoding.ASCII) )
 				{
-					sw.Write(json);
+					sw.Write(ControlString);
 				}
 			}
 		}
-	}
 
-	public class BaseFirstContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
-	{
-		// As of 7.0.1, Json.NET suggests using a static instance for "stateless" contract resolvers, for performance reasons.
-		// http://www.newtonsoft.com/json/help/html/ContractResolver.htm
-		// http://www.newtonsoft.com/json/help/html/M_Newtonsoft_Json_Serialization_DefaultContractResolver__ctor_1.htm
-		// "Use the parameterless constructor and cache instances of the contract resolver within your application for optimal performance."
-		private static BaseFirstContractResolver instance;
-
-		static BaseFirstContractResolver()
+		public void CopyTo(ref FileContent instance)
 		{
-			instance = new BaseFirstContractResolver();
-		}
+			System.Reflection.PropertyInfo[] piList = instance.GetType().GetProperties();
 
-		public static BaseFirstContractResolver Instance { get { return instance; } }
-
-		protected override System.Collections.Generic.IList<Newtonsoft.Json.Serialization.JsonProperty> CreateProperties(Newtonsoft.Json.Serialization.JsonObjectContract contract)
-		{
-			var properties = base.CreateProperties(contract);
-
-			//if ( properties != null )
-			//{
-			//	return ((List<JsonProperty>)properties).Sort(delegate (Point p1, Point p2) { return p1.X.CompareTo(p2.X); });
-			//}
-
-			return properties;
-		}
-
-		//protected override System.Collections.Generic.IList<JsonProperty> CreateProperties(Type type, Newtonsoft.Json.MemberSerialization memberSerialization)
-		//{
-		//	var properties = base.CreateProperties(type, memberSerialization);
-		//	if ( properties != null )
-		//		return properties.OrderBy(p => p.DeclaringType.BaseTypesAndSelf().Count()).ToList();
-		//	return properties;
-		//}
-	}
-
-	public static class TypeExtensions
-	{
-		public static System.Collections.Generic.IEnumerable<Type> BaseTypesAndSelf(this Type type)
-		{
-			while ( type != null )
+			foreach ( var item in piList )
 			{
-				yield return type;
-				type = type.BaseType;
+				object o = (object)instance;
+				HandleProperties(item, Content, ref o);
+			}
+		}
+
+		private void HandleProperties(System.Reflection.PropertyInfo pi, object tobj, ref object instance)
+		{
+			if ( tobj == null )
+			{
+				return;
+			}
+
+			if (  pi.PropertyType == typeof(System.Windows.Forms.BindingContext)
+				|| pi.PropertyType == typeof(System.Windows.Forms.ControlBindingsCollection)
+				|| pi.PropertyType == typeof(System.ComponentModel.ISite)
+				)
+			{
+				return;
+			}
+
+			if ( pi.PropertyType.Name == "ColorClass" )
+			{
+				System.Reflection.PropertyInfo prop = tobj.GetType().GetProperty(pi.Name);
+				var val = pi.GetValue(tobj, null);
+				prop.SetValue(instance, val, null);
+			}
+			else if ( !pi.PropertyType.IsValueType && pi.PropertyType.Name != "String" )   // class, struct,...
+			{
+				foreach ( var item in pi.PropertyType.GetProperties() )
+				{
+					object o = pi.GetValue(tobj, null);
+					object i = pi.GetValue(instance, null);
+
+					HandleProperties(item, o, ref i);
+				}
+			}
+			else if ( pi.PropertyType.Name == "String" )
+			{
+				System.Reflection.PropertyInfo prop = tobj.GetType().GetProperty(pi.Name);
+				var val = pi.GetValue(tobj, null);
+				prop.SetValue(instance, val, null);
+			}
+			else
+			{
+				System.Reflection.PropertyInfo prop = tobj.GetType().GetProperty(pi.Name);
+
+				if ( prop == null )
+				{
+				}
+				else
+				{
+					var val = pi.GetValue(tobj, null);
+					prop.SetValue(instance, val, null);
+				}
+
+
+				//var uidPi = pi.GetType().GetProperties();
+
+				//foreach ( var up in uidPi )
+				//{
+				//	System.Reflection.PropertyInfo prop = instance.GetType().GetProperty(up.Name);
+				//	var val = up.GetValue(tobj, null);
+
+				//	switch ( up.Name )
+				//	{
+				//		case "ColorClass":
+				//		case "ISite":
+				//		case "DataBindings":
+				//		case "BindingContext":
+				//		case "ControlBindingsCollection":
+				//		case "IBindableComponent":
+				//			break;
+				//		default:
+				//			{
+				//				prop.SetValue(instance, val, null);
+				//			}
+				//			break;
+				//	}
+				//}
 			}
 		}
 	}

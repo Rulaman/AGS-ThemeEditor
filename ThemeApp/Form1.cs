@@ -8,6 +8,8 @@ namespace ThemeApp
 		private FileReader.File AGSTheme;
 		private string FilePath = string.Empty;
 
+		private FileReader.FileContent Cont = new FileReader.FileContent();
+
 		public Form1()
 		{
 			InitializeComponent();
@@ -17,7 +19,17 @@ namespace ThemeApp
 			//string filePath = System.IO.Path.Combine(CurrDir, @"VisualStudioDark.json");
 			//AGSTheme.Load(filePath);
 			//pg.SelectedObject = AGSTheme.Content;
+
+			Binding bind = new Binding("TileColor", Cont, nameof(Cont.Background), true, DataSourceUpdateMode.OnPropertyChanged);
+			bind.Format += Data.ColorBind.Format;
+			bind.Parse += Data.ColorBind.Parse;
+			colorControl1.Description = "Background";
+			colorControl1.DataBindings.Add(bind);
+
+			pg.SelectedObject = Cont;
+			//instanceControl1.DisplayClass(Cont);
 		}
+
 
 		private void Load_Click(object sender, System.EventArgs e)
 		{
@@ -34,7 +46,17 @@ namespace ThemeApp
 				{
 					FilePath = ofd.FileName;
 					AGSTheme.Load(FilePath);
-					pg.SelectedObject = AGSTheme.Content;
+					//pg.SelectedObject = AGSTheme.Content;
+
+					// existing instance 'Cont'
+
+					AGSTheme.CopyTo(ref Cont);
+
+					instanceControl1.DisplayClass(Cont);
+
+					pg.SelectedObject = null;
+					pg.SelectedObject = Cont;
+
 				}
 			}
 		}
