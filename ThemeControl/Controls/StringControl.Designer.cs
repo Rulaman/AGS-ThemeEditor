@@ -1,6 +1,6 @@
 ﻿namespace ThemeControl
 {
-	partial class ColorControl
+	partial class StringControl
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -29,12 +29,12 @@
 		private void InitializeComponent()
 		{
 			this.SuspendLayout();
-			// 
-			// ColorControl
-			// 
+			//
+			// StringControl
+			//
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.Name = "ColorControl";
+			this.Name = "StringControl";
 			this.Size = new System.Drawing.Size(500, 24);
 			this.ResumeLayout(false);
 

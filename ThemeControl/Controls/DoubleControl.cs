@@ -1,53 +1,33 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
+using System.Data;
+using System.Text;
 using System.Windows.Forms;
 
-namespace ThemeControl
+namespace ThemeControl.Controls
 {
-	public partial class ColorControl : UserControl, System.ComponentModel.INotifyPropertyChanged
+	public partial class DoubleControl : UserControl, System.ComponentModel.INotifyPropertyChanged
 	{
 		private static readonly Rectangle DescPosition = new Rectangle(2, 1, 102, 20);
-		private static readonly Rectangle BorderPosition = new Rectangle(149, 4, 13, 13); // 14x14
-		private static readonly Rectangle ValuePosition = new Rectangle(150, 5, 12, 12); // 12x12
 		private static readonly Font DescFont = new Font("Segoe UI", 14f, FontStyle.Regular, GraphicsUnit.Pixel);
 		private static readonly Brush DescBrush = Brushes.Black;
 
-		private Rectangle ValueTextPosition = new Rectangle(170, 1, 80, 20);
-		private Brush AlphaBrush = null;
-		private Brush ValueBrush = Brushes.White;
-		private string ValueText = "#FFFFFFFF";
+		private Rectangle ValuePosition = new Rectangle(170, 1, 500, 20);
+		private string ValueText = "Dummy";
 		private TextBox ValueTextBox = null;
 
-		public ColorControl()
+		public DoubleControl()
 		{
 			InitializeComponent();
-
-			using ( Bitmap b = new Bitmap(ValuePosition.Width, ValuePosition.Height) )
-			{
-				using ( Graphics g = Graphics.FromImage(b) )
-				{
-					g.FillRectangle(Brushes.White, 0, 0, b.Width, b.Height);
-					g.FillRectangle(Brushes.LightGray, 0, 0, 3, 3);
-					g.FillRectangle(Brushes.LightGray, 6, 0, 3, 3);
-
-					g.FillRectangle(Brushes.LightGray, 3, 3, 3, 3);
-					g.FillRectangle(Brushes.LightGray, 9, 3, 3, 3);
-
-					g.FillRectangle(Brushes.LightGray, 0, 6, 3, 3);
-					g.FillRectangle(Brushes.LightGray, 6, 6, 3, 3);
-
-					g.FillRectangle(Brushes.LightGray, 3, 9, 3, 3);
-					g.FillRectangle(Brushes.LightGray, 9, 9, 3, 3);
-				}
-				AlphaBrush = new TextureBrush(b);
-			}
 		}
 
 		private TextBox GetTextBox(string value)
 		{
 			if ( ValueTextBox == null )
 			{
-				ValueTextBox = new TextBox() { Location = ValueTextPosition.Location, Width = ValueTextPosition.Width, Height = ValueTextPosition.Height };
+				ValueTextBox = new TextBox() { Location = ValuePosition.Location, Width = ValuePosition.Width, Height = ValuePosition.Height };
 				ValueTextBox.Text = value;
 				ValueTextBox.LostFocus += delegate (object sender, EventArgs e)
 				{
@@ -59,16 +39,16 @@ namespace ThemeControl
 					switch ( e.KeyCode )
 					{
 						case Keys.Enter:
-							if ( ValueTextBox.Text.Parse(out int num) )
 							{
 								ValueTextBox.Visible = false;
-								TileColor = Color.FromArgb(num);
+								double.TryParse(ValueTextBox.Text, out double d);
+								Value = d;
 							}
 							break;
 						case Keys.Escape:
 							{
 								ValueTextBox.Visible = false;
-								ValueTextBox.Text = ValueText;
+								ValueTextBox.Text = Value.ToString();
 							}
 							break;
 						default:
@@ -88,14 +68,8 @@ namespace ThemeControl
 
 			if ( e.ClipRectangle != Rectangle.Empty )
 			{
-				if ( TileColor.A < 255 )
-				{
-					e.Graphics.FillRectangle(AlphaBrush, ValuePosition);
-				}
-				e.Graphics.DrawRectangle(Pens.Black, BorderPosition);
-				e.Graphics.FillRectangle(ValueBrush, ValuePosition);
 				e.Graphics.DrawString(Description, DescFont, DescBrush, DescPosition);
-				e.Graphics.DrawString(ValueText, DescFont, DescBrush, ValueTextPosition);
+				e.Graphics.DrawString(ValueText, DescFont, DescBrush, ValuePosition);
 			}
 		}
 
@@ -106,7 +80,7 @@ namespace ThemeControl
 
 			Rectangle r = new Rectangle(ea.X, ea.Y, 1, 1);
 
-			if ( ValueTextPosition.IntersectsWith(r) )
+			if ( ValuePosition.IntersectsWith(r) )
 			{
 				GetTextBox(ValueText).Show();
 			}
@@ -120,24 +94,19 @@ namespace ThemeControl
 		{
 			base.OnSizeChanged(e);
 
-			ValueTextPosition = new Rectangle(170, 1, Width - 170, 20);
+			ValuePosition = new Rectangle(170, 1, Width - 170, 20);
 		}
-
 		public string Description { get => Get("Dummy"); set => Notify(value); }
-
-		public Color TileColor
+		public double Value
 		{
-			get => Get(Color.Aquamarine);
+			get => Get(0);
 			set
 			{
 				Notify(value);
-				ValueBrush = new SolidBrush(value);
-				ValueText = "#" + value.A.ToString("X2") + value.R.ToString("X2") + value.G.ToString("X2") + value.B.ToString("X2");
+				ValueText = Value.ToString();
 				Refresh();
 			}
 		}
-
-
 
 		#region INotifyPropertyChanged - New
 

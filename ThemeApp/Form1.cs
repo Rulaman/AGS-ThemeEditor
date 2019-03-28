@@ -8,7 +8,7 @@ namespace ThemeApp
 		private FileReader.File AGSTheme;
 		private string FilePath = string.Empty;
 
-		private FileReader.FileContent Cont = new FileReader.FileContent();
+		private Theme.Content Cont = new Theme.Content();
 
 		public Form1()
 		{
@@ -23,8 +23,6 @@ namespace ThemeApp
 			Binding bind = new Binding("TileColor", Cont, nameof(Cont.Background), true, DataSourceUpdateMode.OnPropertyChanged);
 			bind.Format += Data.ColorBind.Format;
 			bind.Parse += Data.ColorBind.Parse;
-			colorControl1.Description = "Background";
-			colorControl1.DataBindings.Add(bind);
 
 			pg.SelectedObject = Cont;
 			//instanceControl1.DisplayClass(Cont);

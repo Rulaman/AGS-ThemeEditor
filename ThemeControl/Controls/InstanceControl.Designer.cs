@@ -41,7 +41,7 @@
 			this.Panel.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
 			this.Panel.Location = new System.Drawing.Point(3, 3);
 			this.Panel.Name = "Panel";
-			this.Panel.Size = new System.Drawing.Size(277, 564);
+			this.Panel.Size = new System.Drawing.Size(512, 564);
 			this.Panel.TabIndex = 0;
 			this.Panel.WrapContents = false;
 			// 
@@ -52,7 +52,7 @@
 			this.Controls.Add(this.Panel);
 			this.MinimumSize = new System.Drawing.Size(260, 100);
 			this.Name = "InstanceControl";
-			this.Size = new System.Drawing.Size(283, 570);
+			this.Size = new System.Drawing.Size(518, 570);
 			this.ResumeLayout(false);
 
 		}

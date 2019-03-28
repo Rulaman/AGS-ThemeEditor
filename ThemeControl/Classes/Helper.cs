@@ -1,17 +1,12 @@
-﻿using System;
+﻿//namespace System
+//{
+//	public delegate void Action();
+//}
 
-namespace ThemeControl.Classes
+namespace System.Runtime.CompilerServices
 {
-	namespace System
-	{
-		public delegate void Action();
-	}
-
-	namespace System.Runtime.CompilerServices
-	{
-		[AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class | AttributeTargets.Method)]
-		public sealed class ExtensionAttribute : Attribute { }
-	}
+	[AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class | AttributeTargets.Method)]
+	internal sealed class ExtensionAttribute : Attribute { }
 }
 
 namespace System.Runtime.CompilerServices

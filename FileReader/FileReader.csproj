@@ -49,10 +49,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\compiler_service.cs" />
+    <Compile Include="Classes\Helper.cs" />
     <Compile Include="Converter\ColorClassJsonConverter.cs" />
     <Compile Include="Converter\Color.cs" />
     <Compile Include="FileContent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Theme\NotifyBase.cs" />
+    <Compile Include="Theme\Theme.cs" />
     <Compile Include="UiEditor\ColorEditor.cs" />
     <Compile Include="UiEditor\ColorEditorEx.cs" />
     <Compile Include="UiEditor\EmptyEditor.cs" />

@@ -34,7 +34,6 @@ namespace ThemeApp
 			this.BtnLoad = new System.Windows.Forms.Button();
 			this.BtnSave = new System.Windows.Forms.Button();
 			this.BtnSaveAs = new System.Windows.Forms.Button();
-			this.colorControl1 = new ThemeControl.ColorControl();
 			this.instanceControl1 = new ThemeControl.Controls.InstanceControl();
 			this.SuspendLayout();
 			// 
@@ -77,33 +76,25 @@ namespace ThemeApp
 			this.BtnSaveAs.UseVisualStyleBackColor = true;
 			this.BtnSaveAs.Click += new System.EventHandler(this.SaveAs_Click);
 			// 
-			// colorControl1
-			// 
-			this.colorControl1.Description = "Dummy";
-			this.colorControl1.Location = new System.Drawing.Point(318, 12);
-			this.colorControl1.Name = "colorControl1";
-			this.colorControl1.Size = new System.Drawing.Size(250, 24);
-			this.colorControl1.TabIndex = 3;
-			this.colorControl1.TileColor = System.Drawing.Color.Aquamarine;
-			// 
 			// instanceControl1
 			// 
 			this.instanceControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+			this.instanceControl1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.instanceControl1.BackColor = System.Drawing.SystemColors.ButtonShadow;
 			this.instanceControl1.Location = new System.Drawing.Point(409, 49);
+			this.instanceControl1.MinimumSize = new System.Drawing.Size(260, 100);
 			this.instanceControl1.Name = "instanceControl1";
-			this.instanceControl1.Size = new System.Drawing.Size(390, 613);
+			this.instanceControl1.Size = new System.Drawing.Size(691, 613);
 			this.instanceControl1.TabIndex = 4;
 			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(811, 674);
+			this.ClientSize = new System.Drawing.Size(1112, 674);
 			this.Controls.Add(this.instanceControl1);
-			this.Controls.Add(this.colorControl1);
 			this.Controls.Add(this.BtnSaveAs);
 			this.Controls.Add(this.BtnSave);
 			this.Controls.Add(this.BtnLoad);
@@ -120,7 +111,6 @@ namespace ThemeApp
 		private Button BtnLoad;
 		private Button BtnSave;
 		private Button BtnSaveAs;
-		private ThemeControl.ColorControl colorControl1;
 		private ThemeControl.Controls.InstanceControl instanceControl1;
 	}
 }

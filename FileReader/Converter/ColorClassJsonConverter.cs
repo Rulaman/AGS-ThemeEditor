@@ -49,7 +49,15 @@
 		public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
 		{
 			if ( value.GetType() == typeof(string) )
+			{
 				return new ColorClass((string)value);
+			}
+			else if ( value.GetType() == typeof(Color) )
+			{
+				return new ColorClass((Color)value);
+			}
+
+
 			return base.ConvertFrom(context, culture, value);
 		}
 

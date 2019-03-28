@@ -39,11 +39,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\Helper.cs" />
+    <Compile Include="Classes\ParseColor.cs" />
     <Compile Include="Controls\ColorControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Controls\ColorControl.Designer.cs">
       <DependentUpon>ColorControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\DoubleControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\DoubleControl.Designer.cs">
+      <DependentUpon>DoubleControl.cs</DependentUpon>
     </Compile>
     <Compile Include="Controls\InstanceControl.cs">
       <SubType>UserControl</SubType>
@@ -51,15 +58,53 @@
     <Compile Include="Controls\InstanceControl.Designer.cs">
       <DependentUpon>InstanceControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="Controls\IntegerControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\IntegerControl.Designer.cs">
+      <DependentUpon>IntegerControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\LabelControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\LabelControl.Designer.cs">
+      <DependentUpon>LabelControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\StringControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\StringControl.Designer.cs">
+      <DependentUpon>StringControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Converter\Boolean.cs" />
+    <Compile Include="Converter\Integer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Controls\ColorControl.resx">
       <DependentUpon>ColorControl.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Controls\DoubleControl.resx">
+      <DependentUpon>DoubleControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Controls\InstanceControl.resx">
       <DependentUpon>InstanceControl.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Controls\IntegerControl.resx">
+      <DependentUpon>IntegerControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\LabelControl.resx">
+      <DependentUpon>LabelControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\StringControl.resx">
+      <DependentUpon>StringControl.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FileReader\FileReader.csproj">
+      <Project>{07245310-80f1-4394-b93f-a3b7dba5cbdc}</Project>
+      <Name>FileReader</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
