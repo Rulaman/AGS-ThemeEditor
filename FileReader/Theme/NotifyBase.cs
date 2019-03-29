@@ -103,7 +103,7 @@
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
 		private System.Windows.Forms.ControlBindingsCollection dataBindings;
 
-		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), System.ComponentModel.Browsable(false)]
+		[Newtonsoft.Json.JsonIgnore, System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), System.ComponentModel.Browsable(false)]
 		public System.Windows.Forms.BindingContext BindingContext
 		{
 			get
@@ -121,7 +121,7 @@
 		}
 
 		[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Content)]
-		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), System.ComponentModel.Browsable(false)]
+		[Newtonsoft.Json.JsonIgnore, System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), System.ComponentModel.Browsable(false)]
 		public System.Windows.Forms.ControlBindingsCollection DataBindings
 		{
 			get
@@ -134,7 +134,7 @@
 			}
 		}
 
-		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), System.ComponentModel.Browsable(false)]
+		[Newtonsoft.Json.JsonIgnore, System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never), System.ComponentModel.Browsable(false)]
 		public System.ComponentModel.ISite Site
 		{
 			get { return null; }

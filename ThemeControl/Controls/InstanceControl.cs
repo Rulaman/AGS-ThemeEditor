@@ -141,7 +141,7 @@ namespace ThemeControl.Controls
 			bool s = (bool)pi.GetValue(tobj, null);
 
 			StringControl lbl = new StringControl { Margin = new Padding(0, 0, 0, 0), Width = 500, Description = pi.Name, Value = s.ToString(), Font = new Font("Segoe UI", 14f, FontStyle.Bold, GraphicsUnit.Pixel) };
-			Binding bind = new Binding("Text", tobj, pi.Name, true, DataSourceUpdateMode.OnPropertyChanged);
+			Binding bind = new Binding("Value", tobj, pi.Name, true, DataSourceUpdateMode.OnPropertyChanged);
 			bind.Format += Data.BoolBind.Format;
 			bind.Parse += Data.BoolBind.Parse;
 			lbl.DataBindings.Add(bind);
@@ -153,9 +153,9 @@ namespace ThemeControl.Controls
 			int s = (int)pi.GetValue(tobj, null);
 
 			IntegerControl lbl = new IntegerControl { Margin = new Padding(0, 0, 0, 0), Width = 500, Description = pi.Name, Value = s, Font = new Font("Segoe UI", 14f, FontStyle.Bold, GraphicsUnit.Pixel) };
-			Binding bind = new Binding("Text", tobj, pi.Name, true, DataSourceUpdateMode.OnPropertyChanged);
-			bind.Format += Data.IntBind.Format;
-			bind.Parse += Data.IntBind.Parse;
+			Binding bind = new Binding("Value", tobj, pi.Name, true, DataSourceUpdateMode.OnPropertyChanged);
+			//bind.Format += Data.IntBind.Format;
+			//bind.Parse += Data.IntBind.Parse;
 			lbl.DataBindings.Add(bind);
 			Panel.Controls.Add(lbl);
 		}
@@ -184,7 +184,7 @@ namespace ThemeControl.Controls
 						break;
 				};
 
-				ColorControl cc = new ColorControl { Margin = new Padding(0, 0, 0, 0), Width = 250, Height = 24, Description = prop.Name, TileColor = color, Padding = new Padding(0) };
+				ColorControl cc = new ColorControl { Margin = new Padding(0, 0, 0, 0), Height = 24, Description = prop.Name, TileColor = color, Padding = new Padding(0) };
 				Binding bind = new Binding("TileColor", tobj, prop.Name, true, DataSourceUpdateMode.OnPropertyChanged);
 				bind.Format += Data.ColorBind.Format;
 				bind.Parse += Data.ColorBind.Parse;
