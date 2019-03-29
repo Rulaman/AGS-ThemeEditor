@@ -10,7 +10,7 @@ namespace ThemeControl.Controls
 		private static readonly Font DescFont = new Font("Segoe UI", 14f, FontStyle.Regular, GraphicsUnit.Pixel);
 		private static readonly Brush DescBrush = Brushes.Black;
 
-		private Rectangle ValuePosition = new Rectangle(200, 1, 500, 20);
+		private Rectangle ValuePosition = new Rectangle(Defines.ValuePosition, 1, 500, 20);
 		private string ValueText = "Dummy";
 		private TextBox ValueTextBox = null;
 
@@ -90,7 +90,7 @@ namespace ThemeControl.Controls
 		{
 			base.OnSizeChanged(e);
 
-			ValuePosition = new Rectangle(170, 1, Width - 170, 20);
+			ValuePosition = new Rectangle(Defines.ValuePosition, 1, Width - 170, 20);
 		}
 		public string Description { get => Get("Dummy"); set => Notify(value); }
 		public double Value

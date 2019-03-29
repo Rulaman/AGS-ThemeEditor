@@ -35,6 +35,7 @@ namespace ThemeApp
 			this.BtnSave = new System.Windows.Forms.Button();
 			this.BtnSaveAs = new System.Windows.Forms.Button();
 			this.instanceControl1 = new ThemeControl.Controls.InstanceControl();
+			this.label1 = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// pg
@@ -89,11 +90,21 @@ namespace ThemeApp
 			this.instanceControl1.Size = new System.Drawing.Size(691, 613);
 			this.instanceControl1.TabIndex = 4;
 			// 
+			// label1
+			// 
+			this.label1.AutoSize = true;
+			this.label1.Location = new System.Drawing.Point(336, 12);
+			this.label1.Name = "label1";
+			this.label1.Size = new System.Drawing.Size(16, 13);
+			this.label1.TabIndex = 5;
+			this.label1.Text = "   ";
+			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(1112, 674);
+			this.Controls.Add(this.label1);
 			this.Controls.Add(this.instanceControl1);
 			this.Controls.Add(this.BtnSaveAs);
 			this.Controls.Add(this.BtnSave);
@@ -102,6 +113,7 @@ namespace ThemeApp
 			this.Name = "Form1";
 			this.Text = "Form1";
 			this.ResumeLayout(false);
+			this.PerformLayout();
 
 		}
 
@@ -112,6 +124,7 @@ namespace ThemeApp
 		private Button BtnSave;
 		private Button BtnSaveAs;
 		private ThemeControl.Controls.InstanceControl instanceControl1;
+		private Label label1;
 	}
 }
 

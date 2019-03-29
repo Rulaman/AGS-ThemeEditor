@@ -51,6 +51,7 @@ namespace ThemeApp
 					pg.SelectedObject = null;
 					pg.SelectedObject = Cont;
 
+					label1.Text = FilePath;
 				}
 			}
 		}
@@ -60,6 +61,7 @@ namespace ThemeApp
 			if ( FilePath != null )
 			{
 				AGSTheme.Write(FilePath);
+				label1.Text = FilePath;
 			}
 		}
 
@@ -76,6 +78,7 @@ namespace ThemeApp
 
 				AGS.Theme.File f = new AGS.Theme.File() { Content = Cont };
 				f.Write(FilePath);
+				label1.Text = FilePath;
 			}
 		}
 	}

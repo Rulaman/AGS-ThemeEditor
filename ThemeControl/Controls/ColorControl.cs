@@ -6,16 +6,15 @@ namespace ThemeControl
 {
 	public partial class ColorControl : UserControl, System.ComponentModel.INotifyPropertyChanged
 	{
-		private static readonly int DescLen = 200;
-		private static readonly Rectangle DescPosition = new Rectangle(2, 1, DescLen - 2, 20);
-		private static readonly Rectangle BorderPosition = new Rectangle(DescLen - 1, 4, 13, 13); // 14x14
-		private static readonly Rectangle ValuePosition = new Rectangle(DescLen, 5, 12, 12); // 12x12
+		private static readonly Rectangle DescPosition = new Rectangle(2, 1, 102, 20);
+		private static readonly Rectangle BorderPosition = new Rectangle(Defines.ValuePosition - 16, 4, 13, 13); // 14x14
+		private static readonly Rectangle ValuePosition = new Rectangle(Defines.ValuePosition - 15, 5, 12, 12); // 12x12
 		private static readonly Font DescFont = new Font("Segoe UI", 14f, FontStyle.Regular, GraphicsUnit.Pixel);
 		private static readonly Brush DescBrush = Brushes.Black;
 
 		private static readonly Font ValueFont = new Font("Consolas", 14f, FontStyle.Regular, GraphicsUnit.Pixel);
 
-		private Rectangle ValueTextPosition = new Rectangle(DescLen + 20, 1, 100, 20);
+		private Rectangle ValueTextPosition = new Rectangle(Defines.ValuePosition, 1, 100, 20);
 		private Brush AlphaBrush = null;
 		private Brush ValueBrush = Brushes.White;
 		private string ValueText = "#FFFFFFFF";
@@ -44,8 +43,6 @@ namespace ThemeControl
 				}
 				AlphaBrush = new TextureBrush(b);
 			}
-
-			ValueTextPosition = new Rectangle(DescLen + 20, 1, Width - (DescLen + 20), 20);
 		}
 
 		private TextBox GetTextBox(string value)
@@ -126,7 +123,7 @@ namespace ThemeControl
 		{
 			base.OnSizeChanged(e);
 
-			ValueTextPosition = new Rectangle(DescLen + 20, 1, Width - (DescLen+20), 20);
+			ValueTextPosition = new Rectangle(Defines.ValuePosition, 1, Width - Defines.ValuePosition, 20);
 		}
 
 		public string Description { get => Get("Dummy"); set => Notify(value); }

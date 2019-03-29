@@ -45,6 +45,7 @@
     <Compile Include="Controls\ColorControl.Designer.cs">
       <DependentUpon>ColorControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="Classes\Defines.cs" />
     <Compile Include="Controls\DoubleControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

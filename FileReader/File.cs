@@ -65,7 +65,14 @@
 			{
 				return;
 			}
-			if ( !pi.PropertyType.IsValueType && pi.PropertyType.Name != "String" )   // class, struct,...
+
+			if ( pi.PropertyType.Name == "ColorClass" )
+			{
+				System.Reflection.PropertyInfo prop = tobj.GetType().GetProperty(pi.Name);
+				var val = pi.GetValue(tobj, null);
+				prop.SetValue(instance, val, null);
+			}
+			else if ( !pi.PropertyType.IsValueType && pi.PropertyType.Name != "String" )   // class, struct,...
 			{
 				foreach ( var item in pi.PropertyType.GetProperties() )
 				{
