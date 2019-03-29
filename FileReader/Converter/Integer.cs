@@ -1,4 +1,4 @@
-﻿namespace Data
+﻿namespace AGS.Theme.Converter
 {
 	public static class IntBind
 	{

@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
-using System.Text;
 using System.Windows.Forms;
 
 namespace ThemeControl.Controls
@@ -14,7 +10,7 @@ namespace ThemeControl.Controls
 		private static readonly Font DescFont = new Font("Segoe UI", 14f, FontStyle.Regular, GraphicsUnit.Pixel);
 		private static readonly Brush DescBrush = Brushes.Black;
 
-		private Rectangle ValuePosition = new Rectangle(170, 1, 500, 20);
+		private Rectangle ValuePosition = new Rectangle(200, 1, 500, 20);
 		private string ValueText = "Dummy";
 		private TextBox ValueTextBox = null;
 

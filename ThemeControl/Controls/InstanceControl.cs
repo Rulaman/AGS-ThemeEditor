@@ -142,8 +142,8 @@ namespace ThemeControl.Controls
 
 			StringControl lbl = new StringControl { Margin = new Padding(0, 0, 0, 0), Width = 500, Description = pi.Name, Value = s.ToString(), Font = new Font("Segoe UI", 14f, FontStyle.Bold, GraphicsUnit.Pixel) };
 			Binding bind = new Binding("Value", tobj, pi.Name, true, DataSourceUpdateMode.OnPropertyChanged);
-			bind.Format += Data.BoolBind.Format;
-			bind.Parse += Data.BoolBind.Parse;
+			bind.Format += AGS.Theme.Converter.BoolBind.Format;
+			bind.Parse += AGS.Theme.Converter.BoolBind.Parse;
 			lbl.DataBindings.Add(bind);
 			Panel.Controls.Add(lbl);
 		}
@@ -153,10 +153,6 @@ namespace ThemeControl.Controls
 			int s = (int)pi.GetValue(tobj, null);
 
 			IntegerControl lbl = new IntegerControl { Margin = new Padding(0, 0, 0, 0), Width = 500, Description = pi.Name, Value = s, Font = new Font("Segoe UI", 14f, FontStyle.Bold, GraphicsUnit.Pixel) };
-			//Binding bind = new Binding("Value", tobj, pi.Name, true, DataSourceUpdateMode.OnPropertyChanged);
-			//bind.Format += Data.IntBind.Format;
-			//bind.Parse += Data.IntBind.Parse;
-			//lbl.DataBindings.Add(bind);
 			Panel.Controls.Add(lbl);
 		}
 

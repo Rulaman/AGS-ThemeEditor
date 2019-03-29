@@ -1,7 +1,4 @@
-﻿//namespace System
-//{
-//	public delegate void Action();
-//}
+﻿// You only need this file, if you compile against .NET 2.0
 
 namespace System.Runtime.CompilerServices
 {
