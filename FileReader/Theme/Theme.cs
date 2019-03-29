@@ -1,12 +1,12 @@
-﻿namespace Theme
+﻿namespace AGS.Theme
 {
 	using System;
 	using System.ComponentModel;
 	using System.Drawing.Design;
 
-	using Theme.Converter;
-	using Theme.Editor;
-	using Notify;
+	using AGS.Theme.Converter;
+	using AGS.Theme.Editor;
+	using AGS.Theme.Notify;
 
 	public static class DEFINE { public static ColorClass COLORNORMAL = new ColorClass(-16777216); }
 
@@ -1616,7 +1616,7 @@
 		public TextEditorClass TextEditor { get => Get(new TextEditorClass()); set { Notify(value); } }
 	}
 
-	public class Content : NotifyBase
+	public class ThemeContainer : NotifyBase
 	{
 		public override string ToString() { return ""; }
 

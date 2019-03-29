@@ -5,24 +5,20 @@ namespace ThemeApp
 	public partial class Form1 : Form
 	{
 		private static readonly string CurrDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-		private FileReader.File AGSTheme;
+		private AGS.Theme.File AGSTheme;
 		private string FilePath = string.Empty;
 
-		private Theme.Content Cont = new Theme.Content();
+		private AGS.Theme.ThemeContainer Cont = new AGS.Theme.ThemeContainer();
 
 		public Form1()
 		{
 			InitializeComponent();
 
-			AGSTheme = new FileReader.File();
+			AGSTheme = new AGS.Theme.File();
 
 			//string filePath = System.IO.Path.Combine(CurrDir, @"VisualStudioDark.json");
 			//AGSTheme.Load(filePath);
 			//pg.SelectedObject = AGSTheme.Content;
-
-			Binding bind = new Binding("TileColor", Cont, nameof(Cont.Background), true, DataSourceUpdateMode.OnPropertyChanged);
-			bind.Format += Data.ColorBind.Format;
-			bind.Parse += Data.ColorBind.Parse;
 
 			pg.SelectedObject = Cont;
 			//instanceControl1.DisplayClass(Cont);
@@ -77,7 +73,9 @@ namespace ThemeApp
 			if ( sfd.ShowDialog() == DialogResult.OK )
 			{
 				FilePath = sfd.FileName;
-				AGSTheme.Write(FilePath);
+
+				AGS.Theme.File f = new AGS.Theme.File() { Content = Cont };
+				f.Write(FilePath);
 			}
 		}
 	}

@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Drawing.Design;
 using System.Windows.Forms.Design;
 
-namespace Theme.Editor
+namespace AGS.Theme.Editor
 {
 	public class EmptyEditor : UITypeEditor
 	{

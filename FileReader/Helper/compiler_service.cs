@@ -1,4 +1,6 @@
-﻿namespace System.Runtime.CompilerServices
+﻿// You only need this file, if you compile against .NET 2.0
+
+namespace System.Runtime.CompilerServices
 {
 	// Summary: Allows you to obtain the method or property name of the caller to the method.
 	[AttributeUsage(AttributeTargets.Parameter, Inherited = false)]

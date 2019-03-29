@@ -1,4 +1,4 @@
-﻿namespace Theme.Editor
+﻿namespace AGS.Theme.Editor
 {
 	using FileReader;
 	using System;

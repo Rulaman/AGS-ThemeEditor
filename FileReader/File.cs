@@ -1,16 +1,8 @@
-﻿using System;
-using System.ComponentModel;
-using System.Drawing.Design;
-
-using Theme.Converter;
-using Theme.Editor;
-using Theme;
-
-namespace FileReader
+﻿namespace AGS.Theme
 {
 	public class File
 	{
-		public Content Content { get; internal set; } = new Content();
+		public ThemeContainer Content { get; set; } = new ThemeContainer();
 		public string ControlString { get; internal set; } = string.Empty;
 
 		public bool Load(string fileName)
@@ -27,7 +19,7 @@ namespace FileReader
 					ControlString = System.Text.Encoding.ASCII.GetString(dataarray);
 				}
 
-				Content = Newtonsoft.Json.JsonConvert.DeserializeObject<Content>(ControlString);
+				Content = Newtonsoft.Json.JsonConvert.DeserializeObject<ThemeContainer>(ControlString);
 
 				returnValue = true;
 			}
@@ -48,7 +40,7 @@ namespace FileReader
 			}
 		}
 
-		public void CopyTo(ref Content instance)
+		public void CopyTo(ref ThemeContainer instance)
 		{
 			System.Reflection.PropertyInfo[] piList = instance.GetType().GetProperties();
 
@@ -73,14 +65,7 @@ namespace FileReader
 			{
 				return;
 			}
-
-			if ( pi.PropertyType.Name == "ColorClass" )
-			{
-				System.Reflection.PropertyInfo prop = tobj.GetType().GetProperty(pi.Name);
-				var val = pi.GetValue(tobj, null);
-				prop.SetValue(instance, val, null);
-			}
-			else if ( !pi.PropertyType.IsValueType && pi.PropertyType.Name != "String" )   // class, struct,...
+			if ( !pi.PropertyType.IsValueType && pi.PropertyType.Name != "String" )   // class, struct,...
 			{
 				foreach ( var item in pi.PropertyType.GetProperties() )
 				{
@@ -90,49 +75,15 @@ namespace FileReader
 					HandleProperties(item, o, ref i);
 				}
 			}
-			else if ( pi.PropertyType.Name == "String" )
-			{
-				System.Reflection.PropertyInfo prop = tobj.GetType().GetProperty(pi.Name);
-				var val = pi.GetValue(tobj, null);
-				prop.SetValue(instance, val, null);
-			}
 			else
 			{
 				System.Reflection.PropertyInfo prop = tobj.GetType().GetProperty(pi.Name);
 
-				if ( prop == null )
-				{
-				}
-				else
+				if ( prop != null )
 				{
 					var val = pi.GetValue(tobj, null);
 					prop.SetValue(instance, val, null);
 				}
-
-
-				//var uidPi = pi.GetType().GetProperties();
-
-				//foreach ( var up in uidPi )
-				//{
-				//	System.Reflection.PropertyInfo prop = instance.GetType().GetProperty(up.Name);
-				//	var val = up.GetValue(tobj, null);
-
-				//	switch ( up.Name )
-				//	{
-				//		case "ColorClass":
-				//		case "ISite":
-				//		case "DataBindings":
-				//		case "BindingContext":
-				//		case "ControlBindingsCollection":
-				//		case "IBindableComponent":
-				//			break;
-				//		default:
-				//			{
-				//				prop.SetValue(instance, val, null);
-				//			}
-				//			break;
-				//	}
-				//}
 			}
 		}
 	}

@@ -1,6 +1,5 @@
-﻿namespace Theme.Converter
+﻿namespace AGS.Theme.Converter
 {
-	using FileReader;
 	using Newtonsoft.Json.Serialization;
 	using System;
 	using System.ComponentModel;
@@ -32,13 +31,11 @@
 
 		public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, Newtonsoft.Json.JsonSerializer serializer)
 		{
-			//return JsonSerializer.CreateDefault(new JsonSerializerSettings { ContractResolver = resolver }).Deserialize(reader, objectType);
 			return Newtonsoft.Json.JsonSerializer.Create(new Newtonsoft.Json.JsonSerializerSettings { ContractResolver = resolver }).Deserialize(reader, objectType);
 		}
 
 		public override void WriteJson(Newtonsoft.Json.JsonWriter writer, object value, Newtonsoft.Json.JsonSerializer serializer)
 		{
-			//JsonSerializer.CreateDefault(new JsonSerializerSettings { ContractResolver = resolver }).Serialize(writer, value);
 			Newtonsoft.Json.JsonSerializer.Create(new Newtonsoft.Json.JsonSerializerSettings { ContractResolver = resolver }).Serialize(writer, value);
 		}
 	}
@@ -96,9 +93,5 @@
 		{
 			return base.GetPropertiesSupported(context);
 		}
-	}
-
-	public class EmptyConverter : TypeConverter
-	{
 	}
 }

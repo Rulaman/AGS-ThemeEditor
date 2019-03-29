@@ -1,5 +1,6 @@
-﻿namespace Notify
+﻿namespace AGS.Theme.Notify
 {
+	// Base class for all json data classes (used for notify changes)
 	public class NotifyBase : System.ComponentModel.INotifyPropertyChanged, System.Windows.Forms.IBindableComponent
 	{
 		#region INotifyPropertyChanged
