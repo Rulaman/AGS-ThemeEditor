@@ -1,6 +1,6 @@
 ﻿namespace AGS.Theme.Editor
 {
-	using FileReader;
+	using AGS.Theme;
 	using System;
 	using System.ComponentModel;
 	using System.Drawing;

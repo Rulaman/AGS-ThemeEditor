@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace FileReader.Properties {
+namespace AGS.Theme.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

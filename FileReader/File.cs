@@ -1,4 +1,6 @@
-﻿namespace AGS.Theme
+﻿using System.Text.RegularExpressions;
+
+namespace AGS.Theme
 {
 	public class File
 	{
@@ -18,6 +20,10 @@
 
 					ControlString = System.Text.Encoding.ASCII.GetString(dataarray);
 				}
+
+				//ControlString = Regex.Replace(ControlString, ".*//.*$", "$1/*$2*/", RegexOptions.Multiline);
+				//ControlString = Regex.Replace(ControlString, @"^\s*//.*$", "", RegexOptions.Multiline);  // removes comments like this
+				//ControlString = Regex.Replace(ControlString, @"^\s*/\*(\s|\S)*?\*/\s*$", "", RegexOptions.Multiline); /* comments like this */
 
 				Content = Newtonsoft.Json.JsonConvert.DeserializeObject<ThemeContainer>(ControlString);
 
