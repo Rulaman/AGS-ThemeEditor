@@ -60,7 +60,8 @@ namespace ThemeApp
 		{
 			if ( FilePath != null )
 			{
-				AGSTheme.Write(FilePath);
+				AGS.Theme.File f = new AGS.Theme.File() { Content = Cont };
+				f.Write(FilePath);
 				label1.Text = FilePath;
 			}
 		}
