@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AGS.Types;
 
 
@@ -35,7 +32,7 @@ namespace ThemeEditor
 		public Component(IAGSEditor editor)
 		{
 			LocalEditor = editor;
-			//LocalEditor.GUIController.RegisterIcon("ThemeEditorIcon", Properties.Resources.FontEditor);
+			LocalEditor.GUIController.RegisterIcon("ThemeEditorIcon", Properties.Resources.AGSTheme);
 			LocalEditor.GUIController.ProjectTree.AddTreeRoot(this, CONTROL_ID_ROOT_NODE, "ThemeEditor", "ThemeEditorIcon");
 			LocalEditor.GUIController.ProjectTree.BeforeShowContextMenu += new BeforeShowContextMenuHandler(ProjectTree_BeforeShowContextMenu);
 			this.MenuCommand = LocalEditor.GUIController.CreateMenuCommand(this, COMPONENT_MENU_COMMAND, "Edit Theme");
@@ -47,11 +44,11 @@ namespace ThemeEditor
 			{
 				int entry = int.Parse(evArgs.SelectedNodeID.Replace("Fnt", ""));
 
-				if ( FontPaneList.ContainsKey(entry) )
-				{
-					MenuEntry = entry;
-					evArgs.MenuCommands.Commands.Add(MenuCommand);
-				}
+				//if ( FontPaneList.ContainsKey(entry) )
+				//{
+				//	MenuEntry = entry;
+				//	evArgs.MenuCommands.Commands.Add(MenuCommand);
+				//}
 			}
 		}
 
@@ -94,11 +91,11 @@ namespace ThemeEditor
 						ThemeEditor fep = new ThemeEditor();// LocalEditor.CurrentGame.DirectoryPath, fontpane.Font.WFNFileName, fontpane.Font.Name);
 						//fep.OnFontModified += new System.EventHandler(fep_OnFontModified);
 
-						fontpane.Document = new ContentDocument(fep, "FontEditor: " + fontpane.Font.Name, this);
-						fep.Tag = fontpane.Document;
-						editpane = fontpane.Document;
+						//fontpane.Document = new ContentDocument(fep, "FontEditor: " + fontpane.Font.Name, this);
+						//fep.Tag = fontpane.Document;
+						//editpane = fontpane.Document;
 
-						PaneDictionary[entry] = fontpane.Document;
+						//PaneDictionary[entry] = fontpane.Document;
 					}
 
 					LocalEditor.GUIController.AddOrShowPane(editpane);
@@ -113,14 +110,17 @@ namespace ThemeEditor
 			{
 				if ( null != item )
 				{
-					FontEditorPane pane = (FontEditorPane)item.Control;
-					pane.Save();
+					//FontEditorPane pane = (FontEditorPane)item.Control;
+					//pane.Save();
 				}
 			}
 		}
 		void IEditorComponent.RefreshDataFromGame()
 		{
 			//LocalEditor.GUIController.RemovePaneIfExists(Pane);
+			//var x = LocalEditor.GUIController.
+
+			//AGS.Editor.ColorThemes t = new AGS.Editor.ColorThemes();
 
 			if ( LocalEditor.CurrentGame.Fonts.Count > 0 )
 			{
@@ -133,7 +133,7 @@ namespace ThemeEditor
 				{
 					if ( System.IO.File.Exists(System.IO.Path.Combine(LocalEditor.CurrentGame.DirectoryPath, font.WFNFileName)) )
 					{
-						FontPaneList.Add(fontcounter, new FontPane(null, null, font));
+						//FontPaneList.Add(fontcounter, new FontPane(null, null, font));
 						PaneDictionary.Add(fontcounter, null);
 						LocalEditor.GUIController.ProjectTree.AddTreeLeaf(this, CONTROL_ID_ROOT_NODE + fontcounter.ToString(), font.Name, "FontEditorIcon", false);
 					}
@@ -149,19 +149,19 @@ namespace ThemeEditor
 
 		void fep_OnFontModified(object sender, System.EventArgs e)
 		{
-			ContentDocument tp = (ContentDocument)((FontEditorPane)sender).Tag;
-			MyEventArgs me = (MyEventArgs)e;
+			//ContentDocument tp = (ContentDocument)((FontEditorPane)sender).Tag;
+			//MyEventArgs me = (MyEventArgs)e;
 
-			if ( tp.Name.Contains("*") && me.Modified == false )
-			{
-				tp.Name = tp.Name.Replace("*", "");
-			}
-			else if ( !tp.Name.Contains("*") && me.Modified == true )
-			{
-				tp.Name += "*";
-			}
+			//if ( tp.Name.Contains("*") && me.Modified == false )
+			//{
+			//	tp.Name = tp.Name.Replace("*", "");
+			//}
+			//else if ( !tp.Name.Contains("*") && me.Modified == true )
+			//{
+			//	tp.Name += "*";
+			//}
 
-			LocalEditor.GUIController.AddOrShowPane(tp);
+			//LocalEditor.GUIController.AddOrShowPane(tp);
 		}
 	}
 }

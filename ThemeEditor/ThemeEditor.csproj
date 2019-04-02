@@ -7,7 +7,7 @@
     <ProjectGuid>{B1526271-4DAE-4876-8124-E3B818DE280C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>ThemeEditor</RootNamespace>
-    <AssemblyName>ThemeEditor</AssemblyName>
+    <AssemblyName>AGS.Plugin.ThemeEditor</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -35,6 +35,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AGS.Controls">
+      <HintPath>P:\Work\Software\PcSoftware\NetV2\Projects\Tests\DB\ags\ags\Editor\AGS.Controls\bin\Debug\AGS.Controls.dll</HintPath>
+    </Reference>
     <Reference Include="AGS.Types">
       <HintPath>externals\AGS.Types.dll</HintPath>
     </Reference>
@@ -42,24 +45,19 @@
       <HintPath>..\packages\Newtonsoft.Json.Net20.dll.3.5.0\lib\2.0\Newtonsoft.Json.Net20.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
+    <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="editor.cs" />
+    <Compile Include="editor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="editor.Designer.cs">
       <DependentUpon>editor.cs</DependentUpon>
     </Compile>
     <Compile Include="interface.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ThemeableValues.cs" />
     <EmbeddedResource Include="editor.resx">
       <DependentUpon>editor.cs</DependentUpon>
     </EmbeddedResource>
@@ -71,6 +69,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -86,5 +85,23 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FileReader\AGS.Theme.csproj">
+      <Project>{07245310-80f1-4394-b93f-a3b7dba5cbdc}</Project>
+      <Name>AGS.Theme</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ThemeControl\ThemeControl.csproj">
+      <Project>{7beffea2-fbab-4eac-a4b9-3c7ecf7a5fc4}</Project>
+      <Name>ThemeControl</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\AGSTheme.ico" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy $(TargetPath) C:\temp\AGS\AGS-3.5\ /Y /S
+xcopy $(TargetDir)AGS.Theme.dll C:\temp\AGS\AGS-3.5\ /Y /S
+xcopy $(TargetDir)ThemeControl.dll C:\temp\AGS\AGS-3.5\ /Y /S</PostBuildEvent>
+  </PropertyGroup>
 </Project>

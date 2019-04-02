@@ -40,7 +40,6 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\Helper.cs" />
     <Compile Include="Classes\ParseColor.cs" />
     <Compile Include="Controls\ColorControl.cs">
       <SubType>UserControl</SubType>

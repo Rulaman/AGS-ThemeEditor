@@ -49,7 +49,6 @@
   <ItemGroup>
     <Compile Include="Converter\Boolean.cs" />
     <Compile Include="Converter\Integer.cs" />
-    <Compile Include="Helper\compiler_service.cs" />
     <Compile Include="Helper\Helper.cs" />
     <Compile Include="Converter\ColorClassJsonConverter.cs" />
     <Compile Include="Converter\Color.cs" />
