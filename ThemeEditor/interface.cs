@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Linq;
 using AGS.Types;
 
 
@@ -128,6 +130,35 @@ namespace ThemeEditor
 
 				LocalEditor.GUIController.ProjectTree.RemoveAllChildNodes(this, CONTROL_ID_ROOT_NODE);
 				LocalEditor.GUIController.ProjectTree.StartFromNode(this, CONTROL_ID_ROOT_NODE);
+
+				//foreach ( var item in LocalEditor.Components )
+				//{
+				//	switch ( item.ComponentID )
+				//	{
+				//		case "Rooms":
+				//			{
+				//				int i = 0;
+
+				//				FieldInfo[] fields = item.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
+
+				//				FieldInfo info = item.GetType().GetField("_loadedRoom", BindingFlags.NonPublic | BindingFlags.Instance);
+				//				object o = info.GetValue(item);
+
+				//				var ii = fields.Where(x => x.Name == "_loadedRoom");
+				//				var l = ii.ToList()[0];
+				//				var ll = l.GetValue(item);
+
+
+				//				foreach ( var inner in fields )
+				//				{
+				//					int j = 0;
+				//				}
+				//			}
+				//			break;
+				//		default:
+				//			break;
+				//	};
+				//}
 
 				foreach ( AGS.Types.Font font in LocalEditor.CurrentGame.Fonts )
 				{
